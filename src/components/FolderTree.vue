@@ -22,30 +22,38 @@
     </div>
 
     <div class="tree-content">
-      <div 
-        v-for="folder in folders" 
-        :key="folder._id"
-        class="tree-item"
-        :class="{ active: currentFolder && currentFolder._id === folder._id }"
-        @click="$emit('folder-selected', folder)"
-      >
-        <div class="folder-item">
-          <span class="folder-icon">📁</span>
-          <span class="folder-name">{{ folder.title }}</span>
-          <div class="folder-actions">
-            <button 
-              @click.stop="deleteFolder(folder)" 
-              class="btn-delete"
-              title="Delete folder"
-            >
-              🗑️
-            </button>
-          </div>
+      <!-- Root level notes -->
+      <div v-if="rootNotes.length > 0" class="notes-section">
+        <div 
+          v-for="note in rootNotes" 
+          :key="note._id"
+          class="note-item"
+          :class="{ active: selectedNote && selectedNote._id === note._id }"
+          @click="$emit('note-selected', note)"
+        >
+          <span class="note-icon">📄</span>
+          <span class="note-title">{{ note.title || 'Untitled Note' }}</span>
         </div>
       </div>
 
-      <div v-if="folders.length === 0" class="empty-state">
-        <p>No folders yet</p>
+      <!-- Folders -->
+      <FolderTreeNode 
+        v-for="folder in folders" 
+        :key="folder._id"
+        :folder="folder"
+        :current-folder="currentFolder"
+        :level="0"
+        :all-notes="allNotes"
+        :selected-note="selectedNote"
+        @folder-selected="$emit('folder-selected', $event)"
+        @folder-created="$emit('folder-created')"
+        @folder-deleted="$emit('folder-deleted')"
+        @folder-moved="$emit('folder-moved')"
+        @note-selected="$emit('note-selected', $event)"
+      />
+
+      <div v-if="folders.length === 0 && rootNotes.length === 0" class="empty-state">
+        <p>No folders or notes yet</p>
         <button @click="showCreateForm = true" class="btn btn-primary btn-sm">
           Create your first folder
         </button>
@@ -56,11 +64,15 @@
 
 <script>
 import { ref } from 'vue'
-import { folderAPI } from '../services/apiServices.js'
+import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
+import FolderTreeNode from './FolderTreeNode.vue'
 
 export default {
   name: 'FolderTree',
+  components: {
+    FolderTreeNode
+  },
   props: {
     folders: {
       type: Array,
@@ -69,25 +81,56 @@ export default {
     currentFolder: {
       type: Object,
       default: null
+    },
+    rootNotes: {
+      type: Array,
+      default: () => []
+    },
+    allNotes: {
+      type: Array,
+      default: () => []
+    },
+    selectedNote: {
+      type: Object,
+      default: null
     }
   },
-  emits: ['folder-selected', 'folder-created', 'folder-deleted'],
+  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected'],
   setup(props, { emit }) {
     const showCreateForm = ref(false)
     const newFolderName = ref('')
 
     const createFolder = async () => {
-      if (!newFolderName.value.trim()) return
+      console.log('🚀 createFolder called')
+      console.log('📝 newFolderName:', newFolderName.value)
+      
+      if (!newFolderName.value.trim()) {
+        console.log('❌ No folder name provided')
+        return
+      }
 
       const user = authService.getUser()
-      if (!user) return
+      const rootFolder = authService.getRootFolder()
+      console.log('👤 User:', user)
+      console.log('📁 Root folder:', rootFolder)
+      
+      if (!user || !rootFolder) {
+        console.log('❌ Missing user or root folder')
+        return
+      }
 
       try {
-        await folderAPI.createFolder(user, newFolderName.value.trim(), 'root')
+        // Create folder in current folder or root folder
+        const parentFolderId = props.currentFolder?._id || rootFolder
+        console.log('📂 Parent folder ID:', parentFolderId)
+        console.log('🌐 Making API call...')
+        
+        await requestAPI.createFolder(user, newFolderName.value.trim(), parentFolderId)
+        console.log('✅ Folder created successfully')
         emit('folder-created')
         cancelCreate()
       } catch (error) {
-        console.error('Error creating folder:', error)
+        console.error('❌ Error creating folder:', error)
         alert('Error creating folder: ' + (error.error || 'Unknown error'))
       }
     }
@@ -103,7 +146,7 @@ export default {
       }
 
       try {
-        await folderAPI.deleteFolder(folder._id)
+        await requestAPI.deleteFolder(folder._id)
         emit('folder-deleted')
       } catch (error) {
         console.error('Error deleting folder:', error)
@@ -228,5 +271,42 @@ export default {
 
 .empty-state p {
   margin-bottom: 1rem;
+}
+
+/* Notes styling */
+.notes-section {
+  margin-bottom: 0.5rem;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  margin: 0.125rem 0;
+}
+
+.note-item:hover {
+  background-color: #f5f5f5;
+}
+
+.note-item.active {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.note-icon {
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.note-title {
+  font-size: 0.9rem;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

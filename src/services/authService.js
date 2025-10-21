@@ -5,9 +5,27 @@ export const authService = {
     localStorage.setItem('user', user)
   },
 
+  // Store both user and root folder data
+  setUserData: (userData) => {
+    localStorage.setItem('user', userData.user)
+    if (userData.rootFolder) {
+      localStorage.setItem('rootFolder', userData.rootFolder)
+    }
+  },
+
   // Get current user from localStorage
   getUser: () => {
     return localStorage.getItem('user')
+  },
+
+  // Get root folder ID from localStorage
+  getRootFolder: () => {
+    return localStorage.getItem('rootFolder')
+  },
+
+  // Set root folder ID in localStorage
+  setRootFolder: (rootFolder) => {
+    localStorage.setItem('rootFolder', rootFolder)
   },
 
   // Check if user is authenticated
@@ -18,6 +36,7 @@ export const authService = {
   // Remove user from localStorage (logout)
   removeUser: () => {
     localStorage.removeItem('user')
+    localStorage.removeItem('rootFolder')
   },
 
   // Clear all localStorage data

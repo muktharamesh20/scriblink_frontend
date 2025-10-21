@@ -64,7 +64,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { authAPI } from '../services/apiServices.js'
+import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -121,9 +121,14 @@ export default {
 
       try {
         console.log('🌐 Making API call to register...')
-        const response = await authAPI.register(form.username, form.password)
+        const response = await requestAPI.registerUser(form.username, form.password)
         
         if (response.user) {
+          // Store both user and root folder data
+          authService.setUserData({
+            user: response.user,
+            rootFolder: response.rootFolder
+          })
           success.value = 'Account created successfully! Redirecting to login...'
           setTimeout(() => {
             router.push('/login')

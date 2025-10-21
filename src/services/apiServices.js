@@ -33,25 +33,114 @@ export const authAPI = {
   }
 }
 
-// Folder API calls
-export const folderAPI = {
-  // Initialize root folder for user
-  initializeFolder: async (user) => {
+// Notes API calls
+export const notesAPI = {
+  // Create a new note
+  createNote: async (user, content, folderId, title) => {
     try {
-      const response = await api.post('/Folder/initializeFolder', { user })
+      const response = await api.post('/Notes/createNote', {
+        user,
+        content,
+        folderId,
+        title
+      })
       return response.data
     } catch (error) {
       throw error.response?.data || error
     }
   },
 
+  // Get user notes
+  getUserNotes: async (user, folderId) => {
+    try {
+      const response = await api.post('/Notes/getUserNotes', {
+        user,
+        folderId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Update note
+  updateNote: async (noteId, content, title) => {
+    try {
+      const response = await api.post('/Request/updateNote', {
+        noteId,
+        content,
+        title,
+        user: localStorage.getItem('user')
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Update note content
+  updateContent: async (noteId, content) => {
+    try {
+      const response = await api.post('/Request/updateNote', {
+        noteId,
+        content,
+        user: localStorage.getItem('user')
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Set note title
+  setTitle: async (noteId, user, title) => {
+    try {
+      const response = await api.post('/Request/updateNote', {
+        noteId,
+        title,
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Delete note
+  deleteNote: async (noteId) => {
+    try {
+      const response = await api.post('/Notes/deleteNote', {
+        noteId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+}
+
+// Folder API calls
+export const folderAPI = {
   // Create a new folder
-  createFolder: async (user, title, parent) => {
+  createFolder: async (user, title, parentFolderId) => {
     try {
       const response = await api.post('/Folder/createFolder', {
         user,
         title,
-        parent
+        parentFolderId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Get folder structure
+  getFolderStructure: async (user, folderId) => {
+    try {
+      const response = await api.post('/Folder/getFolderStructure', {
+        user,
+        folderId
       })
       return response.data
     } catch (error) {
@@ -62,9 +151,10 @@ export const folderAPI = {
   // Move folder to new parent
   moveFolder: async (folder, newParent) => {
     try {
-      const response = await api.post('/Folder/moveFolder', {
-        folder,
-        newParent
+      const response = await api.post('/Request/moveFolder', {
+        folderId: folder,
+        newParentId: newParent,
+        user: localStorage.getItem('user')
       })
       return response.data
     } catch (error) {
@@ -76,7 +166,33 @@ export const folderAPI = {
   deleteFolder: async (folderId) => {
     try {
       const response = await api.post('/Folder/deleteFolder', {
-        f: folderId
+        folderId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Add item to folder
+  addItem: async (folderId, itemId) => {
+    try {
+      const response = await api.post('/Folder/addItem', {
+        folderId,
+        itemId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Remove item from folder
+  removeItem: async (folderId, itemId) => {
+    try {
+      const response = await api.post('/Folder/removeItem', {
+        folderId,
+        itemId
       })
       return response.data
     } catch (error) {
@@ -85,11 +201,11 @@ export const folderAPI = {
   },
 
   // Insert item into folder
-  insertItem: async (item, folder) => {
+  insertItem: async (folderId, itemId) => {
     try {
       const response = await api.post('/Folder/insertItem', {
-        item,
-        folder
+        folderId,
+        itemId
       })
       return response.data
     } catch (error) {
@@ -146,14 +262,15 @@ export const folderAPI = {
   }
 }
 
-// Notes API calls
-export const notesAPI = {
-  // Create a new note
-  createNote: async (user, title = null) => {
+// Tags API calls
+export const tagsAPI = {
+  // Add tag to item
+  addTag: async (user, itemId, tagLabel) => {
     try {
-      const response = await api.post('/Notes/createNote', {
+      const response = await api.post('/Tags/addTag', {
         user,
-        title
+        itemId,
+        tagLabel
       })
       return response.data
     } catch (error) {
@@ -161,7 +278,250 @@ export const notesAPI = {
     }
   },
 
-  // Delete a note
+  // Remove tag from item
+  removeTag: async (user, itemId, tagLabel) => {
+    try {
+      const response = await api.post('/Tags/removeTag', {
+        user,
+        itemId,
+        tagLabel
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Get tags for item
+  getItemTags: async (user, itemId) => {
+    try {
+      const response = await api.post('/Tags/getItemTags', {
+        user,
+        itemId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Get all tags for user
+  getUserTags: async (user) => {
+    try {
+      const response = await api.post('/Tags/getUserTags', {
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+}
+
+// Summaries API calls
+export const summariesAPI = {
+  // Set summary for item
+  setSummary: async (user, itemId, summary) => {
+    try {
+      const response = await api.post('/Summaries/setSummary', {
+        user,
+        itemId,
+        summary
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Get summary for item
+  getSummary: async (user, itemId) => {
+    try {
+      const response = await api.post('/Summaries/getSummary', {
+        user,
+        itemId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Delete summary for item
+  deleteSummary: async (user, itemId) => {
+    try {
+      const response = await api.post('/Summaries/deleteSummary', {
+        user,
+        itemId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Get all summaries for user
+  getUserSummaries: async (user) => {
+    try {
+      const response = await api.post('/Summaries/getUserSummaries', {
+        user,
+        folderId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+}
+
+
+// Export requestAPI
+export const requestAPI = {
+  // User management
+  registerUser: async (username, password) => {
+    try {
+      const response = await api.post('/User/register', {
+        username,
+        password
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  loginUser: async (username, password) => {
+    try {
+      const response = await api.post('/User/login', {
+        username,
+        password
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Folder management
+  getFolderStructure: async (user, folderId = undefined) => {
+    try {
+      const response = await api.post('/Request/getFolderStructure', {
+        user,
+        folderId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  createFolder: async (user, title, parentFolderId) => {
+    try {
+      const response = await api.post('/Request/createFolder', {
+        user,
+        title,
+        parentFolderId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  deleteFolder: async (folderId, user) => {
+    try {
+      const response = await api.post('/Request/deleteFolder', {
+        folderId,
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  moveFolder: async (folder, newParent) => {
+    try {
+      const response = await api.post('/Request/moveFolder', {
+        folderId: folder,
+        newParentId: newParent,
+        user: localStorage.getItem('user')
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Note management
+  createNote: async (user, content, folderId, title, tags = null) => {
+    try {
+      const response = await api.post('/Request/createNote', {
+        user,
+        content,
+        folderId,
+        title,
+        tags
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  getUserNotes: async (user, folderId = undefined, tagLabel = null) => {
+    try {
+      const response = await api.post('/Request/getUserNotes', {
+        user,
+        folderId,
+        tagLabel
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  updateNote: async (noteId, title, content, user) => {
+    try {
+      const response = await api.post('/Request/updateNote', {
+        noteId,
+        title,
+        content,
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  updateContent: async (noteId, content, user) => {
+    try {
+      const response = await api.post('/Request/updateNote', {
+        noteId,
+        content,
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  setTitle: async (noteId, title, user) => {
+    try {
+      const response = await api.post('/Request/updateNote', {
+        noteId,
+        title,
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
   deleteNote: async (noteId, user) => {
     try {
       const response = await api.post('/Notes/deleteNote', {
@@ -174,171 +534,10 @@ export const notesAPI = {
     }
   },
 
-  // Set note title
-  setTitle: async (noteId, user, newTitle) => {
+  // Create root folder
+  createRootFolder: async (user) => {
     try {
-      const response = await api.post('/Notes/setTitle', {
-        noteId,
-        user,
-        newTitle
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Update note content
-  updateContent: async (noteId, user, newContent) => {
-    try {
-      const response = await api.post('/Notes/updateContent', {
-        noteId,
-        user,
-        newContent
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Get note details
-  getNoteDetails: async (noteId, user) => {
-    try {
-      const response = await api.post('/Notes/getNoteDetails', {
-        noteId,
-        user
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Get all notes by user
-  getNotesByUser: async (ownerId) => {
-    try {
-      const response = await api.post('/Notes/getNotesByUser', {
-        ownerId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  }
-}
-
-// Summaries API calls
-export const summariesAPI = {
-  // Set summary manually
-  setSummary: async (item, summary) => {
-    try {
-      const response = await api.post('/Summaries/setSummary', {
-        item,
-        summary
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Set summary with AI
-  setSummaryWithAI: async (item, text) => {
-    try {
-      const response = await api.post('/Summaries/setSummaryWithAI', {
-        item,
-        text
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Delete summary
-  deleteSummary: async (item) => {
-    try {
-      const response = await api.post('/Summaries/deleteSummary', {
-        item
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  }
-}
-
-// Tags API calls
-export const tagsAPI = {
-  // Add tag to item
-  addTag: async (user, label, item) => {
-    try {
-      const response = await api.post('/Tags/addTag', {
-        user,
-        label,
-        item
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Remove tag from item
-  removeTagFromItem: async (tagId, itemId) => {
-    try {
-      const response = await api.post('/Tags/removeTagFromItem', {
-        t: tagId,
-        i: itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Get items by tag
-  getItemsByTag: async (tagId) => {
-    try {
-      const response = await api.post('/Tags/_getItemsByTag', {
-        tagId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Get tags for item
-  getTagsForItem: async (user, item) => {
-    try {
-      const response = await api.post('/Tags/_getTagsForItem', {
-        user,
-        item
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Get tag details
-  getTagDetails: async (tagId) => {
-    try {
-      const response = await api.post('/Tags/_getTagDetails', {
-        tagId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  // Get all user tags
-  getAllUserTags: async (user) => {
-    try {
-      const response = await api.post('/Tags/_getAllUserTags', {
+      const response = await api.post('/Folder/initializeFolder', {
         user
       })
       return response.data

@@ -17,24 +17,24 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { authService } from './services/authService.js'
 
 export default {
   name: 'App',
   setup() {
     const router = useRouter()
     
-    const isAuthenticated = computed(() => {
-      return !!localStorage.getItem('user')
-    })
-    
-    const currentUser = computed(() => {
-      return localStorage.getItem('user') || ''
-    })
+    // Use reactive refs for authentication state
+    const isAuthenticated = ref(!!localStorage.getItem('user'))
+    const currentUser = ref(localStorage.getItem('user') || '')
     
     const logout = () => {
-      localStorage.removeItem('user')
+      authService.removeUser()
+      // Update reactive state
+      isAuthenticated.value = false
+      currentUser.value = ''
       router.push('/login')
     }
     

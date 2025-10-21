@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { notesAPI, folderAPI } from '../services/apiServices.js'
+import { notesAPI, folderAPI, requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -75,10 +75,9 @@ export default {
       if (!user) return
 
       try {
-        const response = await notesAPI.createNote(user, 'Untitled Note')
+        // Use unified Request API to create note in the current folder
+        const response = await requestAPI.createNote(user, 'Start writing your note...', props.folder._id, 'Untitled Note')
         if (response.note) {
-          // Move note to current folder
-          await folderAPI.insertItem(response.note, props.folder._id)
           emit('note-created')
         }
       } catch (error) {

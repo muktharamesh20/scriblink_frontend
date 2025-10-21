@@ -16,6 +16,9 @@
         <button @click="saveNote" class="btn btn-primary btn-sm" :disabled="saving">
           {{ saving ? 'Saving...' : 'Save' }}
         </button>
+        <button @click="exitEditor" class="btn btn-secondary btn-sm">
+          ← Back
+        </button>
         <button @click="deleteNote" class="btn btn-danger btn-sm">
           Delete
         </button>
@@ -89,7 +92,7 @@ export default {
       required: true
     }
   },
-  emits: ['note-updated', 'note-deleted'],
+  emits: ['note-updated', 'note-deleted', 'exit-editor'],
   setup(props, { emit }) {
     const noteTitle = ref('')
     const noteContent = ref('')
@@ -166,12 +169,16 @@ export default {
       if (!user) return
 
       try {
-        await notesAPI.deleteNote(props.note._id, user)
+        await notesAPI.deleteNote(props.note._id)
         emit('note-deleted')
       } catch (error) {
         console.error('Error deleting note:', error)
         alert('Error deleting note: ' + (error.error || 'Unknown error'))
       }
+    }
+
+    const exitEditor = () => {
+      emit('exit-editor')
     }
 
     const toggleTags = () => {
@@ -213,6 +220,7 @@ export default {
       onContentChange,
       saveNote,
       deleteNote,
+      exitEditor,
       toggleTags,
       toggleSummary,
       refreshTags,

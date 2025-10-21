@@ -48,7 +48,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { authAPI } from '../services/apiServices.js'
+import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -73,10 +73,53 @@ export default {
       error.value = ''
 
       try {
-        const response = await authAPI.authenticate(form.username, form.password)
+        const response = await requestAPI.loginUser(form.username, form.password)
         
         if (response.user) {
           authService.setUser(response.user)
+          
+        // Fetch and store the root folder ID
+        try {
+          const folderResponse = await requestAPI.getFolderStructure(response.user, undefined)
+          if (folderResponse.folders && folderResponse.folders.length > 0) {
+            // Use the first folder as the root folder
+            const rootFolderId = folderResponse.folders[0]._id
+            authService.setRootFolder(rootFolderId)
+            console.log('✅ Root folder found and stored:', rootFolderId)
+          } else {
+            // No folders exist, create a root folder
+            console.log('🔧 No folders found, creating root folder...')
+            try {
+              const rootFolderResponse = await requestAPI.createRootFolder(response.user)
+              if (rootFolderResponse.folder) {
+                authService.setRootFolder(rootFolderResponse.folder)
+                console.log('✅ Root folder created and stored:', rootFolderResponse.folder)
+              }
+            } catch (createErr) {
+              console.warn('⚠️ Could not create root folder:', createErr)
+              // If createRootFolder fails, try to create a folder directly
+              console.log('🔧 Trying to create folder directly...')
+              try {
+                // Create a root folder by calling the backend's createFolder with a special approach
+                const directFolderResponse = await requestAPI.createFolder(response.user, 'Root', 'root')
+                if (directFolderResponse.folder) {
+                  authService.setRootFolder(directFolderResponse.folder)
+                  console.log('✅ Root folder created directly:', directFolderResponse.folder)
+                }
+              } catch (directErr) {
+                console.warn('⚠️ Could not create folder directly:', directErr)
+                // Last resort: create a temporary root folder ID
+                const tempRootId = 'temp-root-' + Date.now()
+                authService.setRootFolder(tempRootId)
+                console.log('🔧 Using temporary root folder ID:', tempRootId)
+              }
+            }
+          }
+        } catch (folderErr) {
+          console.warn('⚠️ Could not fetch root folder:', folderErr)
+          // Continue with login even if root folder fetch fails
+        }
+          
           router.push('/dashboard')
         } else {
           error.value = 'Invalid credentials'
