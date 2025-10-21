@@ -132,7 +132,7 @@ export default {
 
       saving.value = true
       try {
-        await notesAPI.updateContent(props.note._id, user, noteContent.value)
+        await notesAPI.updateContent(props.note._id, noteContent.value)
         emit('note-updated')
       } catch (error) {
         console.error('Error updating content:', error)
@@ -177,7 +177,9 @@ export default {
       }
     }
 
-    const exitEditor = () => {
+    const exitEditor = async () => {
+      // Save the note before exiting
+      await saveNote()
       emit('exit-editor')
     }
 

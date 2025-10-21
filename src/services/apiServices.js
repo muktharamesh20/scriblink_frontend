@@ -380,7 +380,7 @@ export const requestAPI = {
   // User management
   registerUser: async (username, password) => {
     try {
-      const response = await api.post('/User/register', {
+      const response = await api.post('/Request/registerUser', {
         username,
         password
       })
@@ -392,7 +392,7 @@ export const requestAPI = {
 
   loginUser: async (username, password) => {
     try {
-      const response = await api.post('/User/login', {
+      const response = await api.post('/Request/loginUser', {
         username,
         password
       })
