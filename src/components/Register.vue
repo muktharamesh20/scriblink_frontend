@@ -106,13 +106,21 @@ export default {
     }
 
     const handleRegister = async () => {
-      if (!validateForm()) return
+      console.log('🚀 handleRegister called')
+      console.log('📝 Form data:', form)
+      
+      if (!validateForm()) {
+        console.log('❌ Form validation failed')
+        return
+      }
 
+      console.log('✅ Form validation passed')
       loading.value = true
       error.value = ''
       success.value = ''
 
       try {
+        console.log('🌐 Making API call to register...')
         const response = await authAPI.register(form.username, form.password)
         
         if (response.user) {
@@ -124,6 +132,7 @@ export default {
           error.value = 'Registration failed'
         }
       } catch (err) {
+        console.error('❌ Registration error:', err)
         error.value = err.error || 'Registration failed. Please try again.'
       } finally {
         loading.value = false

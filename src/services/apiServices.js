@@ -4,13 +4,17 @@ import api from './api.js'
 export const authAPI = {
   // Register a new user
   register: async (username, password) => {
+    console.log('🔐 authAPI.register called with:', { username, password })
     try {
+      console.log('📡 About to make POST request to /PasswordAuth/register')
       const response = await api.post('/PasswordAuth/register', {
         username,
         password
       })
+      console.log('📡 Response received:', response.data)
       return response.data
     } catch (error) {
+      console.error('📡 Error in authAPI.register:', error)
       throw error.response?.data || error
     }
   },
