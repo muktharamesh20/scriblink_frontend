@@ -1,0 +1,5 @@
+# User Journey
+
+During calculus class, a student isn't engaged because they are more focused on taking notes than being present in the class and actually digesting what they are hearing. The student has to rewatch lecture videos consistantly, and falls further and further behind. They need a better way to actually absorb the material and save time. They open up the Scriblink. They create a new note in a "Calculus" folder and start write on that.
+
+When the lecture is over, the AI automatically summarizes the sections. The student also adds the "medium priority" tag, to remind themselves to come back to it later this week just to solidfy the concepts. In the future, when it's midterm season, the students come back to the notes to find their notes. The student is having trouble remembering what the u-subsitution is. The AI has a summary and additional insights about u-substitution attached to that section.
