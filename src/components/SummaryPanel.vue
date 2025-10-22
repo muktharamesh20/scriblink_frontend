@@ -32,11 +32,9 @@
     </div>
 
     <div v-else class="summary-content">
-      <!-- View mode -->
-      <div v-if="!isEditing" class="summary-display">
-        <p v-if="summary && summary.trim()" class="summary-text">
-          {{ summary }}
-        </p>
+             <!-- View mode -->
+             <div v-if="!isEditing" class="summary-display">
+               <div v-if="summary && summary.trim()" class="summary-text" v-html="renderedSummary"></div>
         <div v-else class="empty-summary">
           <p class="empty-message">No summary yet.</p>
           <button 
@@ -79,9 +77,10 @@
 </template>
 
 <script>
-import { ref, onMounted, watch, defineExpose } from 'vue'
+import { ref, onMounted, watch, defineExpose, computed } from 'vue'
 import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
+import { marked } from 'marked'
 
 export default {
   name: 'SummaryPanel',
@@ -232,6 +231,23 @@ export default {
       return new Date(date).toLocaleString()
     }
 
+    // Configure marked for summary rendering
+    marked.setOptions({
+      breaks: true,
+      gfm: true
+    })
+
+    // Computed property for rendered markdown summary
+    const renderedSummary = computed(() => {
+      if (!summary.value) return ''
+      try {
+        return marked(summary.value)
+      } catch (error) {
+        console.error('Error rendering summary markdown:', error)
+        return '<p>Error rendering markdown</p>'
+      }
+    })
+
     // Watch for auto-generate trigger
     watch(() => props.autoGenerate, (shouldAuto) => {
       if (shouldAuto) {
@@ -271,6 +287,7 @@ export default {
       generating,
       error,
       lastGenerated,
+      renderedSummary,
       loadSummary,
       generateSummary,
       regenerateSummary,
@@ -451,5 +468,94 @@ export default {
 .btn-sm {
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
+}
+
+/* Markdown styles for summary */
+.summary-text h1,
+.summary-text h2,
+.summary-text h3,
+.summary-text h4,
+.summary-text h5,
+.summary-text h6 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.summary-text h1 { font-size: 1.4rem; }
+.summary-text h2 { font-size: 1.2rem; }
+.summary-text h3 { font-size: 1.1rem; }
+.summary-text h4 { font-size: 1rem; }
+.summary-text h5 { font-size: 0.9rem; }
+.summary-text h6 { font-size: 0.8rem; color: #666; }
+
+.summary-text p {
+  margin-bottom: 0.75rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+.summary-text ul,
+.summary-text ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.summary-text li {
+  margin-bottom: 0.25rem;
+}
+
+.summary-text blockquote {
+  border-left: 3px solid #3498db;
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  background-color: #f8f9fa;
+  color: #555;
+  font-style: italic;
+}
+
+.summary-text code {
+  background-color: #f1f3f4;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85em;
+  color: #e74c3c;
+}
+
+.summary-text pre {
+  background-color: #2d3748;
+  color: #e2e8f0;
+  padding: 0.75rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.summary-text pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.summary-text strong {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.summary-text em {
+  font-style: italic;
+  color: #555;
+}
+
+.summary-text a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.summary-text a:hover {
+  text-decoration: underline;
 }
 </style>
