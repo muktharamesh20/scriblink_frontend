@@ -378,24 +378,31 @@ export default {
       console.log('🔍 createNewNote debug:', {
         user,
         rootFolder,
+        rootFolderType: typeof rootFolder,
         currentFolder: currentFolder.value,
         currentFolderId: currentFolder.value?._id
       })
       
       if (!user) {
         console.error('❌ No user found')
+        alert('Error: No user found. Please log in again.')
         return
       }
       
       if (!rootFolder) {
         console.error('❌ No root folder found')
+        alert('Error: No root folder found. Please try refreshing the page.')
         return
       }
 
       try {
         // Create note using Request API with current folder or root folder
         const folderId = currentFolder.value?._id || rootFolder
-        console.log('📝 Creating note in folder:', folderId)
+        console.log('📝 Creating note in folder:', folderId, 'type:', typeof folderId)
+        
+        if (!folderId || folderId === 'undefined') {
+          throw new Error('Invalid folder ID: ' + folderId)
+        }
         
         const response = await requestAPI.createNote(user, 'Start writing your note...', folderId, 'Untitled Note')
         console.log('✅ Note created:', response)

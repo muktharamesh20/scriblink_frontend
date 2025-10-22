@@ -1,385 +1,141 @@
 import api from './api.js'
 
-// Authentication API calls
+// Authentication API calls (DEPRECATED - use requestAPI instead)
 export const authAPI = {
-  // Register a new user
+  // All authentication should go through requestAPI
   register: async (username, password) => {
-    console.log('🔐 authAPI.register called with:', { username, password })
-    try {
-      console.log('📡 About to make POST request to /PasswordAuth/register')
-      const response = await api.post('/PasswordAuth/register', {
-        username,
-        password
-      })
-      console.log('📡 Response received:', response.data)
-      return response.data
-    } catch (error) {
-      console.error('📡 Error in authAPI.register:', error)
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ authAPI.register is deprecated - use requestAPI.registerUser instead')
+    return requestAPI.registerUser(username, password)
   },
 
-  // Authenticate user
   authenticate: async (username, password) => {
-    try {
-      const response = await api.post('/PasswordAuth/authenticate', {
-        username,
-        password
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ authAPI.authenticate is deprecated - use requestAPI.loginUser instead')
+    return requestAPI.loginUser(username, password)
   }
 }
 
-// Notes API calls
+// Notes API calls (DEPRECATED - use requestAPI instead)
 export const notesAPI = {
-  // Create a new note
+  // All these methods now route through requestAPI
   createNote: async (user, content, folder, title) => {
-    try {
-      const response = await api.post('/Notes/createNote', {
-        user,
-        content,
-        folder,
-        title
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.createNote(user, content, folder, title)
   },
 
-  // Get user notes
   getUserNotes: async (user, folderId) => {
-    try {
-      const response = await api.post('/Notes/getUserNotes', {
-        user,
-        folderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.getUserNotes(user, folderId)
   },
 
-  // Update note
   updateNote: async (noteId, content, title) => {
-    try {
-      const response = await api.post('/Request/updateNote', {
-        noteId,
-        content,
-        title,
-        user: localStorage.getItem('user')
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.updateNote(noteId, title, content, localStorage.getItem('user'))
   },
 
-  // Update note content
   updateContent: async (noteId, content) => {
-    try {
-      const response = await api.post('/Request/updateNote', {
-        noteId,
-        content,
-        user: localStorage.getItem('user')
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.updateContent(noteId, content, localStorage.getItem('user'))
   },
 
-  // Set note title
   setTitle: async (noteId, user, title) => {
-    try {
-      const response = await api.post('/Request/updateNote', {
-        noteId,
-        title,
-        user
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.setTitle(noteId, title, user)
   },
 
-  // Delete note
   deleteNote: async (noteId) => {
-    try {
-      const response = await api.post('/Notes/deleteNote', {
-        noteId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.deleteNote(noteId, localStorage.getItem('user'))
   }
 }
 
-// Folder API calls
+// Folder API calls (DEPRECATED - use requestAPI instead)
 export const folderAPI = {
-  // Create a new folder
+  // All these methods now route through requestAPI
   createFolder: async (user, title, parentFolderId) => {
-    try {
-      const response = await api.post('/Folder/createFolder', {
-        user,
-        title,
-        parentFolderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.createFolder(user, title, parentFolderId)
   },
 
-  // Get folder structure
   getFolderStructure: async (user, folderId) => {
-    try {
-      const response = await api.post('/Folder/getFolderStructure', {
-        user,
-        folderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.getFolderStructure(user, folderId)
   },
 
-  // Move folder to new parent
   moveFolder: async (folder, newParent) => {
-    console.log('🚀 [folderAPI.moveFolder] Starting moveFolder API call');
-    console.log('🔍 [folderAPI.moveFolder] Parameters:', { folder, newParent, user: localStorage.getItem('user') });
-    
-    try {
-      const requestPayload = {
-        folderId: folder,
-        newParentId: newParent,
-        user: localStorage.getItem('user')
-      };
-      console.log('🔍 [folderAPI.moveFolder] Request payload:', requestPayload);
-      
-      const response = await api.post('/Request/moveFolder', requestPayload);
-      console.log('✅ [folderAPI.moveFolder] API response received:', response.data);
-      return response.data
-    } catch (error) {
-      console.error('❌ [folderAPI.moveFolder] API error:', error);
-      console.error('❌ [folderAPI.moveFolder] Error response:', error.response?.data);
-      throw error.response?.data || error
-    }
+    return requestAPI.moveFolder(folder, newParent)
   },
 
-  // Delete folder
   deleteFolder: async (folderId) => {
-    try {
-      const response = await api.post('/Folder/deleteFolder', {
-        folderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.deleteFolder(folderId, localStorage.getItem('user'))
   },
 
-  // Add item to folder
+  // These internal methods should not be used directly - use requestAPI methods instead
   addItem: async (folderId, itemId) => {
-    try {
-      const response = await api.post('/Folder/addItem', {
-        folderId,
-        itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ folderAPI.addItem is deprecated - folder operations are handled internally')
+    throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
   },
 
-  // Remove item from folder
   removeItem: async (folderId, itemId) => {
-    try {
-      const response = await api.post('/Folder/removeItem', {
-        folderId,
-        itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ folderAPI.removeItem is deprecated - folder operations are handled internally')
+    throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
   },
 
-  // Insert item into folder
   insertItem: async (folderId, itemId) => {
-    try {
-      const response = await api.post('/Folder/insertItem', {
-        folderId,
-        itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ folderAPI.insertItem is deprecated - folder operations are handled internally')
+    throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
   },
 
-  // Delete item from folder
   deleteItem: async (item) => {
-    try {
-      const response = await api.post('/Folder/deleteItem', {
-        item
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ folderAPI.deleteItem is deprecated - use requestAPI.deleteNote instead')
+    throw new Error('Method deprecated - use requestAPI.deleteNote instead')
   },
 
-  // Get folder children
+  // Internal methods - should not be called directly from frontend
   getFolderChildren: async (folderId) => {
-    try {
-      const response = await api.post('/Folder/_getFolderChildren', {
-        folderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ folderAPI.getFolderChildren is deprecated - use requestAPI.getFolderStructure instead')
+    throw new Error('Method deprecated - use requestAPI.getFolderStructure instead')
   },
 
-  // Get folder items
   getFolderItems: async (folderId) => {
-    try {
-      const response = await api.post('/Folder/_getFolderItems', {
-        folderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ folderAPI.getFolderItems is deprecated - use requestAPI.getUserNotes instead')
+    throw new Error('Method deprecated - use requestAPI.getUserNotes instead')
   },
 
-  // Get folder details
   getFolderDetails: async (folderId) => {
-    try {
-      const response = await api.post('/Folder/_getFolderDetails', {
-        folderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    console.warn('⚠️ folderAPI.getFolderDetails is deprecated - use requestAPI.getFolderStructure instead')
+    throw new Error('Method deprecated - use requestAPI.getFolderStructure instead')
   }
 }
 
-// Tags API calls
+// Tags API calls (DEPRECATED - use requestAPI instead)
 export const tagsAPI = {
-  // Add tag to item
+  // All these methods now route through requestAPI
   addTag: async (user, itemId, tagLabel) => {
-    try {
-      const response = await api.post('/Tags/addTag', {
-        user,
-        itemId,
-        tagLabel
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.tagItem(user, itemId, tagLabel)
   },
 
-  // Remove tag from item
   removeTag: async (user, itemId, tagLabel) => {
-    try {
-      const response = await api.post('/Tags/removeTag', {
-        user,
-        itemId,
-        tagLabel
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.untagItem(user, itemId, tagLabel)
   },
 
-  // Get tags for item
   getItemTags: async (user, itemId) => {
-    try {
-      const response = await api.post('/Tags/getItemTags', {
-        user,
-        itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.getItemTags(user, itemId)
   },
 
-  // Get all tags for user
   getUserTags: async (user) => {
-    try {
-      const response = await api.post('/Tags/getUserTags', {
-        user
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.getUserTags(user)
   }
 }
 
-// Summaries API calls
+// Summaries API calls (DEPRECATED - use requestAPI instead)
 export const summariesAPI = {
-  // Set summary for item
+  // All these methods now route through requestAPI
   setSummary: async (user, itemId, summary) => {
-    try {
-      const response = await api.post('/Summaries/setSummary', {
-        user,
-        itemId,
-        summary
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.setSummary(user, itemId, summary)
   },
 
-  // Get summary for item
   getSummary: async (user, itemId) => {
-    try {
-      const response = await api.post('/Summaries/getSummary', {
-        user,
-        itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.getSummary(user, itemId)
   },
 
-  // Delete summary for item
   deleteSummary: async (user, itemId) => {
-    try {
-      const response = await api.post('/Summaries/deleteSummary', {
-        user,
-        itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.deleteSummary(user, itemId)
   },
 
-  // Get all summaries for user
   getUserSummaries: async (user) => {
-    try {
-      const response = await api.post('/Summaries/getUserSummaries', {
-        user,
-        folderId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.getUserSummaries(user)
   }
 }
 
@@ -400,13 +156,19 @@ export const requestAPI = {
   },
 
   loginUser: async (username, password) => {
+    console.log('🔐 [requestAPI.loginUser] Attempting login with:', { username, passwordLength: password?.length })
     try {
-      const response = await api.post('/Request/loginUser', {
+      const requestPayload = {
         username,
         password
-      })
+      }
+      console.log('📡 [requestAPI.loginUser] Sending request to /Request/loginUser')
+      const response = await api.post('/Request/loginUser', requestPayload)
+      console.log('✅ [requestAPI.loginUser] Response received:', response.data)
       return response.data
     } catch (error) {
+      console.error('❌ [requestAPI.loginUser] Login failed:', error)
+      console.error('❌ [requestAPI.loginUser] Error response:', error.response?.data)
       throw error.response?.data || error
     }
   },
@@ -548,7 +310,7 @@ export const requestAPI = {
 
   deleteNote: async (noteId, user) => {
     try {
-      const response = await api.post('/Notes/deleteNote', {
+      const response = await api.post('/Request/deleteNote', {
         noteId,
         user
       })
@@ -558,41 +320,116 @@ export const requestAPI = {
     }
   },
 
-        // Create root folder
-        createRootFolder: async (user) => {
-          try {
-            const response = await api.post('/Folder/initializeFolder', {
-              user
-            })
-            return response.data
-          } catch (error) {
-            throw error.response?.data || error
-          }
-        },
+  // Move note to folder
+  moveNote: async (noteId, folderId, user) => {
+    try {
+      const response = await api.post('/Request/moveNote', {
+        noteId,
+        folderId,
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
 
-        // Move note to folder
-        moveNote: async (noteId, folderId, user) => {
-          try {
-            const response = await api.post('/Request/moveNote', {
-              noteId,
-              folderId,
-              user
-            })
-            return response.data
-          } catch (error) {
-            throw error.response?.data || error
-          }
-        },
+  // Tag management
+  tagItem: async (user, itemId, tagLabel) => {
+    try {
+      const response = await api.post('/Request/tagItem', {
+        user,
+        itemId,
+        tagLabel
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
 
-        deleteFolder: async (folderId, user) => {
-          try {
-            const response = await api.post('/Request/deleteFolder', {
-              folderId,
-              user
-            })
-            return response.data
-          } catch (error) {
-            throw error.response?.data || error
-          }
-        }
-      }
+  untagItem: async (user, itemId, tagLabel) => {
+    try {
+      const response = await api.post('/Request/untagItem', {
+        user,
+        itemId,
+        tagLabel
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  getItemTags: async (user, itemId) => {
+    try {
+      const response = await api.post('/Request/getItemTags', {
+        user,
+        itemId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  getUserTags: async (user) => {
+    try {
+      const response = await api.post('/Request/getUserTags', {
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  // Summary management
+  setSummary: async (user, itemId, summary) => {
+    try {
+      const response = await api.post('/Request/setSummary', {
+        user,
+        itemId,
+        summary
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  getSummary: async (user, itemId) => {
+    try {
+      const response = await api.post('/Request/getSummary', {
+        user,
+        itemId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  deleteSummary: async (user, itemId) => {
+    try {
+      const response = await api.post('/Request/deleteSummary', {
+        user,
+        itemId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
+  getUserSummaries: async (user) => {
+    try {
+      const response = await api.post('/Request/getUserSummaries', {
+        user
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+}
