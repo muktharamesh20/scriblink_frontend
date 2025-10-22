@@ -13,9 +13,29 @@ export const authService = {
     }
   },
 
+  // Store user data with username for display
+  setUserDataWithUsername: (userData, username) => {
+    localStorage.setItem('user', userData.user)
+    localStorage.setItem('username', username)
+    if (userData.rootFolder) {
+      localStorage.setItem('rootFolder', userData.rootFolder)
+    }
+  },
+
+  // Store user data with username for display
+  setUserWithUsername: (userId, username) => {
+    localStorage.setItem('user', userId)
+    localStorage.setItem('username', username)
+  },
+
   // Get current user from localStorage
   getUser: () => {
     return localStorage.getItem('user')
+  },
+
+  // Get current username from localStorage
+  getUsername: () => {
+    return localStorage.getItem('username') || localStorage.getItem('user')
   },
 
   // Get root folder ID from localStorage
@@ -36,6 +56,7 @@ export const authService = {
   // Remove user from localStorage (logout)
   removeUser: () => {
     localStorage.removeItem('user')
+    localStorage.removeItem('username')
     localStorage.removeItem('rootFolder')
   },
 

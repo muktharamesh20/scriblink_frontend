@@ -14,19 +14,6 @@
 
     <div class="dashboard-content">
       <div class="sidebar">
-        <!-- Root drop zone -->
-        <div 
-          class="root-drop-zone"
-          :class="{ 'drag-over': isRootDragOver }"
-          @dragover="handleRootDragOver"
-          @dragenter="handleRootDragEnter"
-          @dragleave="handleRootDragLeave"
-          @drop="handleRootDrop"
-        >
-          <h3>📁 Root</h3>
-          <p>Drop folders here to move to root</p>
-        </div>
-        
         <FolderTree 
           :folders="folders"
           :current-folder="currentFolder"
@@ -36,8 +23,13 @@
           @folder-selected="selectFolder"
           @folder-created="refreshFolders"
           @folder-deleted="refreshFolders"
-          @folder-moved="refreshFolders"
+          @folder-moved="handleFolderMoved"
           @note-selected="selectNote"
+          @note-moved="refreshNotes"
+          @drag-start="handleDragStart"
+          @drag-end="handleDragEnd"
+          @folder-drag-over="handleFolderDragOver"
+          @folder-drag-leave="handleFolderDragLeave"
         />
         
       </div>
@@ -57,7 +49,6 @@
         <div v-else-if="currentFolder" class="folder-view">
           <div class="folder-header">
             <button @click="goBackToRoot" class="back-button">← Back to Root</button>
-            <h2>{{ currentFolder.title }}</h2>
           </div>
           <FolderView 
             :folder="currentFolder"
@@ -110,7 +101,8 @@ export default {
     const currentFolder = ref(null)
     const selectedNote = ref(null)
     const loading = ref(false)
-    const isRootDragOver = ref(false)
+    const isDraggingItem = ref(false)
+    const isDraggingOverFolder = ref(false)
 
     const currentFolderNotes = computed(() => {
       if (!currentFolder.value) return []
@@ -123,18 +115,18 @@ export default {
 
     const loadAllNotes = async () => {
       const user = authService.getUser()
-      const rootFolder = authService.getRootFolder()
       
-      console.log('🔄 loadAllNotes called with:', { user, rootFolder })
+      console.log('🔄 loadAllNotes called with:', { user })
       
-      if (!user || !rootFolder) {
-        console.log('❌ Missing user or rootFolder:', { user, rootFolder })
+      if (!user) {
+        console.log('❌ Missing user:', { user })
         return
       }
 
       try {
         console.log('🔄 Loading all notes for sidebar...')
-        const userNotes = await requestAPI.getUserNotes(user, rootFolder)
+        // Get ALL notes for the user (not just root folder notes)
+        const userNotes = await requestAPI.getUserNotes(user, undefined)
         console.log('📦 API response:', userNotes)
         allNotes.value = userNotes.notes || []
         console.log('✅ Loaded notes for sidebar:', allNotes.value.length, 'notes')
@@ -182,17 +174,103 @@ export default {
       }
     }
 
+    const handleFolderMoved = () => {
+      console.log('🚀 [Dashboard.handleFolderMoved] Folder moved event received');
+      refreshFolders();
+    }
+
     const refreshFolders = async () => {
+      console.log('🚀 [Dashboard.refreshFolders] Starting folder refresh');
       const user = authService.getUser()
       const rootFolder = authService.getRootFolder()
-      if (!user || !rootFolder) return
+      console.log('🔍 [Dashboard.refreshFolders] User and root folder:', { user, rootFolder });
+      
+      if (!user || !rootFolder) {
+        console.error('❌ [Dashboard.refreshFolders] Missing user or root folder');
+        return
+      }
 
       try {
-        // Get folder structure using Request API with root folder ID
-        const folderStructure = await requestAPI.getFolderStructure(user, rootFolder)
-        folders.value = folderStructure.folders || []
+        console.log('🔄 [Dashboard.refreshFolders] Calling requestAPI.getFolderStructure');
+        // Get folder structure using Request API without folderId to get ALL folders in a flat array
+        const folderStructure = await requestAPI.getFolderStructure(user, undefined)
+        console.log('🔍 [Dashboard.refreshFolders] Folder structure received:', folderStructure);
+        
+        const allFolders = folderStructure.folders || []
+        console.log('🔍 [Dashboard.refreshFolders] All folders count:', allFolders.length);
+        console.log('🔍 [Dashboard.refreshFolders] All folders:', allFolders.map(f => ({ _id: f._id, title: f.title, folders: f.folders })));
+        
+        // Build hierarchy client-side from flat data
+        const buildHierarchy = (folders) => {
+          console.log('🔍 [Dashboard.refreshFolders] Building hierarchy for folders:', folders.map(f => f._id));
+          return folders.map(folder => {
+            // Find children of this folder
+            const children = allFolders.filter(child => 
+              folder.folders && folder.folders.includes(child._id)
+            )
+            console.log('🔍 [Dashboard.refreshFolders] Children for folder', folder._id, ':', children.map(c => c._id));
+            
+            // Recursively build children
+            const nestedChildren = buildHierarchy(children)
+            
+            return {
+              ...folder,
+              children: nestedChildren
+            }
+          })
+        }
+
+        // Find the root folder object and its direct children
+        const rootFolderObj = allFolders.find(f => f._id === rootFolder)
+        console.log('🔍 [Dashboard.refreshFolders] Root folder object:', rootFolderObj);
+        
+        // Get direct children of the root folder
+        let rootFolders = []
+        if (rootFolderObj && rootFolderObj.folders && rootFolderObj.folders.length > 0) {
+          // Find folders that are in the root's folders array
+          rootFolders = allFolders.filter(folder => 
+            rootFolderObj.folders.includes(folder._id)
+          )
+        } else {
+          // If no root folder found or it has no children, find folders that are not children of any other folder
+          rootFolders = allFolders.filter(folder => {
+            if (folder._id === rootFolder) return false // Exclude root itself
+            
+            // Check if this folder is a child of any other non-root folder
+            return !allFolders.some(otherFolder => 
+              otherFolder._id !== rootFolder && 
+              otherFolder.folders && 
+              otherFolder.folders.includes(folder._id)
+            )
+          })
+        }
+        console.log('🔍 [Dashboard.refreshFolders] Root folders found:', rootFolders.map(f => ({ _id: f._id, title: f.title })));
+
+        // Build nested hierarchy starting from root folders
+        const hierarchy = buildHierarchy(rootFolders)
+        console.log('🔍 [Dashboard.refreshFolders] Built hierarchy:', hierarchy);
+        
+        // Debug: Check if any folder has children
+        const checkHierarchy = (folders, level = 0) => {
+          folders.forEach(folder => {
+            console.log(`${'  '.repeat(level)}📁 ${folder.title} (${folder._id}) - Children: ${folder.children?.length || 0}`);
+            if (folder.children && folder.children.length > 0) {
+              checkHierarchy(folder.children, level + 1);
+            }
+          });
+        };
+        console.log('🔍 [Dashboard.refreshFolders] Hierarchy structure:');
+        checkHierarchy(hierarchy);
+        
+        folders.value = hierarchy
+        console.log('✅ [Dashboard.refreshFolders] Folders updated in reactive state');
+        
+        // Also refresh sidebar notes when folders change
+        console.log('🔄 [Dashboard.refreshFolders] Refreshing notes');
+        await loadAllNotes()
+        console.log('✅ [Dashboard.refreshFolders] Folder refresh completed');
       } catch (error) {
-        console.error('Error refreshing folders:', error)
+        console.error('❌ [Dashboard.refreshFolders] Error refreshing folders:', error)
       }
     }
 
@@ -215,8 +293,11 @@ export default {
     }
 
     const selectFolder = async (folder) => {
+      console.log('🔍 selectFolder called with:', folder)
       currentFolder.value = folder
       selectedNote.value = null
+      
+      console.log('🔍 currentFolder set to:', currentFolder.value)
       
       // Load notes for the selected folder
       const user = authService.getUser()
@@ -225,6 +306,7 @@ export default {
       try {
         const folderNotes = await requestAPI.getUserNotes(user, folder._id)
         notes.value = folderNotes.notes || []
+        console.log('🔍 Loaded notes for folder:', folderNotes.notes?.length || 0, 'notes')
       } catch (error) {
         console.error('Error loading folder notes:', error)
       }
@@ -263,53 +345,25 @@ export default {
       }
     }
 
-    // Root drop zone handlers
-    const handleRootDragOver = (event) => {
-      event.preventDefault()
-      event.dataTransfer.dropEffect = 'move'
+    // Global drag state handlers
+    const handleDragStart = () => {
+      console.log('🚀 [Dashboard] Drag started')
+      isDraggingItem.value = true
+      isDraggingOverFolder.value = false
     }
 
-    const handleRootDragEnter = (event) => {
-      event.preventDefault()
-      isRootDragOver.value = true
+    const handleDragEnd = () => {
+      console.log('🏁 [Dashboard] Drag ended')
+      isDraggingItem.value = false
+      isDraggingOverFolder.value = false
     }
 
-    const handleRootDragLeave = (event) => {
-      if (!event.currentTarget.contains(event.relatedTarget)) {
-        isRootDragOver.value = false
-      }
+    const handleFolderDragOver = () => {
+      isDraggingOverFolder.value = true
     }
 
-    const handleRootDrop = async (event) => {
-      event.preventDefault()
-      isRootDragOver.value = false
-      
-      const data = JSON.parse(event.dataTransfer.getData('text/plain'))
-      console.log('🔍 handleRootDrop debug:', {
-        data,
-        user: authService.getUser(),
-        rootFolder: authService.getRootFolder()
-      })
-      
-      if (data.type === 'folder') {
-        const user = authService.getUser()
-        const rootFolder = authService.getRootFolder()
-        if (!user || !rootFolder) {
-          console.error('❌ Missing user or root folder for root drop')
-          return
-        }
-
-        console.log('📁 Moving folder to root:', data.id, 'to root:', rootFolder)
-        
-        try {
-          const result = await requestAPI.moveFolder(data.id, rootFolder)
-          console.log('✅ Folder moved to root successfully:', result)
-          await refreshFolders()
-        } catch (error) {
-          console.error('❌ Error moving folder to root:', error)
-          alert('Error moving folder to root: ' + (error.error || 'Unknown error'))
-        }
-      }
+    const handleFolderDragLeave = () => {
+      isDraggingOverFolder.value = false
     }
 
     const createNewNote = async () => {
@@ -319,7 +373,8 @@ export default {
       console.log('🔍 createNewNote debug:', {
         user,
         rootFolder,
-        currentFolder: currentFolder.value
+        currentFolder: currentFolder.value,
+        currentFolderId: currentFolder.value?._id
       })
       
       if (!user) {
@@ -384,21 +439,23 @@ export default {
       currentFolderNotes,
       allNotes,
       rootNotes,
-      isRootDragOver,
+      isDraggingItem,
+      isDraggingOverFolder,
       selectFolder,
       selectNote,
       handleNoteDeleted,
       exitNoteEditor,
       goBackToRoot,
-      handleRootDragOver,
-      handleRootDragEnter,
-      handleRootDragLeave,
-      handleRootDrop,
+      handleDragStart,
+      handleDragEnd,
+      handleFolderDragOver,
+      handleFolderDragLeave,
       createNewNote,
       createNewFolder,
       refreshFolders,
       refreshNotes,
-      loadAllNotes
+      loadAllNotes,
+      handleFolderMoved
     }
   }
 }
@@ -533,33 +590,6 @@ export default {
 .folder-header h2 {
   margin: 0;
   color: #2c3e50;
-}
-
-.root-drop-zone {
-  background: #f8f9fa;
-  border: 2px dashed #dee2e6;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.root-drop-zone.drag-over {
-  background: #e8f5e8;
-  border-color: #4caf50;
-  border-style: solid;
-}
-
-.root-drop-zone h3 {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
-}
-
-.root-drop-zone p {
-  margin: 0;
-  color: #6c757d;
-  font-size: 0.9rem;
 }
 
 .sidebar-notes {

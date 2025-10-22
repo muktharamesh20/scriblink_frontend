@@ -21,7 +21,14 @@
       </div>
     </div>
 
-    <div class="tree-content">
+    <div 
+      class="tree-content"
+      :class="{ 'drag-over': isDragOver }"
+      @dragover="handleDragOver"
+      @drop="handleDrop"
+      @dragenter="handleDragEnter"
+      @dragleave="handleDragLeave"
+    >
       <!-- Root level notes -->
       <div v-if="rootNotes.length > 0" class="notes-section">
         <div 
@@ -30,6 +37,9 @@
           class="note-item"
           :class="{ active: selectedNote && selectedNote._id === note._id }"
           @click="$emit('note-selected', note)"
+          draggable="true"
+          @dragstart="handleNoteDragStart($event, note)"
+          @dragend="handleNoteDragEnd"
         >
           <span class="note-icon">📄</span>
           <span class="note-title">{{ note.title || 'Untitled Note' }}</span>
@@ -50,6 +60,11 @@
         @folder-deleted="$emit('folder-deleted')"
         @folder-moved="$emit('folder-moved')"
         @note-selected="$emit('note-selected', $event)"
+        @note-moved="$emit('note-moved')"
+        @drag-start="handleChildDragStart"
+        @drag-end="handleChildDragEnd"
+        @folder-drag-over="$emit('folder-drag-over')"
+        @folder-drag-leave="$emit('folder-drag-leave')"
       />
 
       <div v-if="folders.length === 0 && rootNotes.length === 0" class="empty-state">
@@ -95,7 +110,7 @@ export default {
       default: null
     }
   },
-  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected'],
+  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected', 'note-moved', 'drag-start', 'drag-end', 'folder-drag-over', 'folder-drag-leave'],
   setup(props, { emit }) {
     const showCreateForm = ref(false)
     const newFolderName = ref('')
@@ -146,11 +161,115 @@ export default {
       }
 
       try {
-        await requestAPI.deleteFolder(folder._id)
+        const user = authService.getUser()
+        if (!user) {
+          console.error('❌ No user found for deleteFolder')
+          return
+        }
+        
+        await requestAPI.deleteFolder(folder._id, user)
         emit('folder-deleted')
       } catch (error) {
         console.error('Error deleting folder:', error)
         alert('Error deleting folder: ' + (error.error || 'Unknown error'))
+      }
+    }
+
+    const handleNoteDragStart = (event, note) => {
+      emit('drag-start')
+      event.dataTransfer.setData('text/plain', JSON.stringify({
+        type: 'note',
+        id: note._id,
+        title: note.title || 'Untitled Note'
+      }))
+      event.dataTransfer.effectAllowed = 'move'
+    }
+
+    const handleNoteDragEnd = () => {
+      isDragOver.value = false
+      emit('drag-end')
+    }
+
+    const handleChildDragStart = () => {
+      emit('drag-start')
+    }
+
+    const handleChildDragEnd = () => {
+      isDragOver.value = false
+      emit('drag-end')
+    }
+
+    // Drag and drop handlers for moving items to root
+    const isDragOver = ref(false)
+
+    const handleDragOver = (event) => {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'move'
+    }
+
+    const handleDragEnter = (event) => {
+      event.preventDefault()
+      isDragOver.value = true
+    }
+
+    const handleDragLeave = (event) => {
+      // Only set drag over to false if we're leaving the entire tree area
+      if (!event.currentTarget.contains(event.relatedTarget)) {
+        isDragOver.value = false
+      }
+    }
+
+    const handleDrop = async (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      isDragOver.value = false
+      emit('drag-end') // Clear global drag state
+      
+      const data = JSON.parse(event.dataTransfer.getData('text/plain'))
+      const user = authService.getUser()
+      const rootFolder = authService.getRootFolder()
+      
+      if (!user || !rootFolder) {
+        console.error('❌ Missing user or root folder for root drop')
+        return
+      }
+
+      if (data.type === 'folder') {
+        console.log('📁 [FolderTree.handleDrop] Moving folder to root:', data.id, 'to root:', rootFolder)
+        console.log('🔍 [FolderTree.handleDrop] Move parameters:', {
+          sourceFolderId: data.id,
+          targetRootFolder: rootFolder,
+          user: user
+        });
+        
+        try {
+          console.log('🔄 [FolderTree.handleDrop] Calling requestAPI.moveFolder');
+          const result = await requestAPI.moveFolder(data.id, rootFolder)
+          console.log('✅ [FolderTree.handleDrop] Folder moved to root successfully:', result)
+          console.log('🔄 [FolderTree.handleDrop] Emitting folder-moved event');
+          emit('folder-moved')
+          console.log('✅ [FolderTree.handleDrop] folder-moved event emitted');
+        } catch (error) {
+          console.error('❌ [FolderTree.handleDrop] Error moving folder to root:', error)
+          alert('Error moving folder to root: ' + (error.error || 'Unknown error'))
+        }
+      } else if (data.type === 'note') {
+        console.log('📄 [FolderTree.handleDrop] Moving note to root:', data.id, 'to root folder:', rootFolder)
+        console.log('🔍 [FolderTree.handleDrop] Note move parameters:', {
+          noteId: data.id,
+          targetRootFolder: rootFolder,
+          user: user
+        });
+        
+        try {
+          console.log('🔄 [FolderTree.handleDrop] Calling requestAPI.moveNote');
+          const result = await requestAPI.moveNote(data.id, rootFolder, user)
+          console.log('✅ [FolderTree.handleDrop] Note moved to root successfully:', result)
+          emit('note-moved')
+        } catch (error) {
+          console.error('❌ [FolderTree.handleDrop] Error moving note to root:', error)
+          alert('Error moving note to root: ' + (error.error || 'Unknown error'))
+        }
       }
     }
 
@@ -159,7 +278,16 @@ export default {
       newFolderName,
       createFolder,
       cancelCreate,
-      deleteFolder
+      deleteFolder,
+      handleNoteDragStart,
+      handleNoteDragEnd,
+      handleChildDragStart,
+      handleChildDragEnd,
+      isDragOver,
+      handleDragOver,
+      handleDragEnter,
+      handleDragLeave,
+      handleDrop
     }
   }
 }
@@ -170,6 +298,13 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.tree-content.drag-over {
+  background-color: #e3f2fd;
+  border: 2px dashed #2196f3;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .tree-header {

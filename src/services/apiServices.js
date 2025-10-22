@@ -150,14 +150,23 @@ export const folderAPI = {
 
   // Move folder to new parent
   moveFolder: async (folder, newParent) => {
+    console.log('🚀 [folderAPI.moveFolder] Starting moveFolder API call');
+    console.log('🔍 [folderAPI.moveFolder] Parameters:', { folder, newParent, user: localStorage.getItem('user') });
+    
     try {
-      const response = await api.post('/Request/moveFolder', {
+      const requestPayload = {
         folderId: folder,
         newParentId: newParent,
         user: localStorage.getItem('user')
-      })
+      };
+      console.log('🔍 [folderAPI.moveFolder] Request payload:', requestPayload);
+      
+      const response = await api.post('/Request/moveFolder', requestPayload);
+      console.log('✅ [folderAPI.moveFolder] API response received:', response.data);
       return response.data
     } catch (error) {
+      console.error('❌ [folderAPI.moveFolder] API error:', error);
+      console.error('❌ [folderAPI.moveFolder] Error response:', error.response?.data);
       throw error.response?.data || error
     }
   },
@@ -404,13 +413,19 @@ export const requestAPI = {
 
   // Folder management
   getFolderStructure: async (user, folderId = undefined) => {
+    console.log('🚀 [requestAPI.getFolderStructure] Starting getFolderStructure API call');
+    console.log('🔍 [requestAPI.getFolderStructure] Parameters:', { user, folderId });
+    
     try {
-      const response = await api.post('/Request/getFolderStructure', {
-        user,
-        folderId
-      })
+      const requestPayload = { user, folderId };
+      console.log('🔍 [requestAPI.getFolderStructure] Request payload:', requestPayload);
+      
+      const response = await api.post('/Request/getFolderStructure', requestPayload);
+      console.log('✅ [requestAPI.getFolderStructure] API response received:', response.data);
       return response.data
     } catch (error) {
+      console.error('❌ [requestAPI.getFolderStructure] API error:', error);
+      console.error('❌ [requestAPI.getFolderStructure] Error response:', error.response?.data);
       throw error.response?.data || error
     }
   },
@@ -441,14 +456,23 @@ export const requestAPI = {
   },
 
   moveFolder: async (folder, newParent) => {
+    console.log('🚀 [requestAPI.moveFolder] Starting moveFolder API call');
+    console.log('🔍 [requestAPI.moveFolder] Parameters:', { folder, newParent, user: localStorage.getItem('user') });
+    
     try {
-      const response = await api.post('/Request/moveFolder', {
+      const requestPayload = {
         folderId: folder,
         newParentId: newParent,
         user: localStorage.getItem('user')
-      })
+      };
+      console.log('🔍 [requestAPI.moveFolder] Request payload:', requestPayload);
+      
+      const response = await api.post('/Request/moveFolder', requestPayload);
+      console.log('✅ [requestAPI.moveFolder] API response received:', response.data);
       return response.data
     } catch (error) {
+      console.error('❌ [requestAPI.moveFolder] API error:', error);
+      console.error('❌ [requestAPI.moveFolder] Error response:', error.response?.data);
       throw error.response?.data || error
     }
   },
@@ -534,15 +558,41 @@ export const requestAPI = {
     }
   },
 
-  // Create root folder
-  createRootFolder: async (user) => {
-    try {
-      const response = await api.post('/Folder/initializeFolder', {
-        user
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  }
-}
+        // Create root folder
+        createRootFolder: async (user) => {
+          try {
+            const response = await api.post('/Folder/initializeFolder', {
+              user
+            })
+            return response.data
+          } catch (error) {
+            throw error.response?.data || error
+          }
+        },
+
+        // Move note to folder
+        moveNote: async (noteId, folderId, user) => {
+          try {
+            const response = await api.post('/Request/moveNote', {
+              noteId,
+              folderId,
+              user
+            })
+            return response.data
+          } catch (error) {
+            throw error.response?.data || error
+          }
+        },
+
+        deleteFolder: async (folderId, user) => {
+          try {
+            const response = await api.post('/Request/deleteFolder', {
+              folderId,
+              user
+            })
+            return response.data
+          } catch (error) {
+            throw error.response?.data || error
+          }
+        }
+      }

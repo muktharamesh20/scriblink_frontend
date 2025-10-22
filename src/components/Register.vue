@@ -124,11 +124,11 @@ export default {
         const response = await requestAPI.registerUser(form.username, form.password)
         
         if (response.user) {
-          // Store both user and root folder data
-          authService.setUserData({
+          // Store both user and root folder data with username
+          authService.setUserDataWithUsername({
             user: response.user,
             rootFolder: response.rootFolder
-          })
+          }, form.username)
           success.value = 'Account created successfully! Redirecting to login...'
           setTimeout(() => {
             router.push('/login')

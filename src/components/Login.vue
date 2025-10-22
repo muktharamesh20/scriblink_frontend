@@ -76,7 +76,7 @@ export default {
         const response = await requestAPI.loginUser(form.username, form.password)
         
         if (response.user) {
-          authService.setUser(response.user)
+          authService.setUserWithUsername(response.user, form.username)
           
         // Fetch and store the root folder ID
         try {

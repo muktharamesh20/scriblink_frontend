@@ -28,7 +28,7 @@ export default {
     
     // Use reactive refs for authentication state
     const isAuthenticated = ref(!!localStorage.getItem('user'))
-    const currentUser = ref(localStorage.getItem('user') || '')
+    const currentUser = ref(authService.getUsername() || '')
     
     const logout = () => {
       authService.removeUser()

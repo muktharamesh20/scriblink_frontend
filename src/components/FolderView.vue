@@ -9,7 +9,13 @@
       </div>
     </div>
 
-    <div class="folder-content">
+    <div 
+      class="folder-content"
+      @dragover="handleDragOver"
+      @drop="handleDrop"
+      @dragenter="handleDragEnter"
+      @dragleave="handleDragLeave"
+    >
       <div v-if="notes.length === 0" class="empty-folder">
         <p>This folder is empty</p>
         <button @click="createNote" class="btn btn-primary">
@@ -109,10 +115,56 @@ export default {
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
     }
 
+    // Drag and drop handlers for notes
+    const handleDragOver = (event) => {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'move'
+    }
+
+    const handleDragEnter = (event) => {
+      event.preventDefault()
+      event.currentTarget.classList.add('drag-over')
+    }
+
+    const handleDragLeave = (event) => {
+      event.currentTarget.classList.remove('drag-over')
+    }
+
+    const handleDrop = async (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      event.currentTarget.classList.remove('drag-over')
+      
+      const data = JSON.parse(event.dataTransfer.getData('text/plain'))
+      
+      if (data.type === 'note') {
+        const user = authService.getUser()
+        if (!user) {
+          console.error('❌ No user found for moveNote')
+          return
+        }
+
+        console.log('📄 Moving note:', data.id, 'to folder:', props.folder._id)
+        
+        try {
+          const result = await requestAPI.moveNote(data.id, props.folder._id, user)
+          console.log('✅ Note moved successfully:', result)
+          emit('note-moved')
+        } catch (error) {
+          console.error('❌ Error moving note:', error)
+          alert('Error moving note: ' + (error.error || 'Unknown error'))
+        }
+      }
+    }
+
     return {
       createNote,
       deleteNote,
-      formatDate
+      formatDate,
+      handleDragOver,
+      handleDragEnter,
+      handleDragLeave,
+      handleDrop
     }
   }
 }
@@ -142,6 +194,11 @@ export default {
 .folder-content {
   flex: 1;
   overflow-y: auto;
+}
+
+.folder-content.drag-over {
+  background-color: #e3f2fd;
+  border: 2px dashed #2196f3;
 }
 
 .empty-folder {
