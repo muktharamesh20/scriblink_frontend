@@ -77,6 +77,39 @@
         </div>
       </div>
     </div>
+
+    <!-- Tags Overview Section -->
+    <div class="tags-overview">
+      <div class="tags-overview-header">
+        <h3>📋 Tags Overview</h3>
+        <button @click="refreshTagsOverview" class="btn btn-sm btn-secondary">
+          🔄 Refresh
+        </button>
+      </div>
+      <div class="tags-grid">
+        <div v-for="tagGroup in sortedTagsOverview" :key="tagGroup.tag" class="tag-group">
+          <div class="tag-header">
+            <span class="tag-name">{{ tagGroup.tag }}</span>
+            <span class="tag-count">{{ tagGroup.notes.length }} notes</span>
+          </div>
+          <div class="tag-notes">
+            <div 
+              v-for="note in tagGroup.notes" 
+              :key="note._id" 
+              class="tag-note-item"
+              @click="selectNote(note)"
+              :class="{ 'selected': selectedNote && selectedNote._id === note._id }"
+            >
+              <div class="note-title">{{ note.title }}</div>
+              <div class="note-meta">
+                <span class="note-date">{{ formatRelativeTime(note.last_modified) }}</span>
+                <span v-if="note.folderId" class="note-folder">{{ getFolderName(note.folderId) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -158,6 +191,120 @@ export default {
       console.log('🔍 rootNotes filtered:', filtered.length, 'notes')
       return filtered
     })
+
+    // Tags overview data
+    const tagsOverview = ref([])
+
+    // Computed property for sorted tags overview
+    const sortedTagsOverview = computed(() => {
+      if (!tagsOverview.value.length) return []
+      
+      // Sort by priority (High > Medium > Low > others) and then by recency
+      const priorityOrder = {
+        'High Priority': 1,
+        'Medium Priority': 2, 
+        'Low Priority': 3,
+        'Go to Office Hours': 4,
+        'Review Needed': 5
+      }
+      
+      return tagsOverview.value
+        .map(tagGroup => ({
+          ...tagGroup,
+          notes: tagGroup.notes.sort((a, b) => {
+            // Sort notes by last_modified (most recent first)
+            return new Date(b.last_modified) - new Date(a.last_modified)
+          })
+        }))
+        .sort((a, b) => {
+          const aPriority = priorityOrder[a.tag] || 999
+          const bPriority = priorityOrder[b.tag] || 999
+          
+          if (aPriority !== bPriority) {
+            return aPriority - bPriority
+          }
+          
+          // If same priority, sort by most recent note
+          const aLatest = a.notes[0]?.last_modified || 0
+          const bLatest = b.notes[0]?.last_modified || 0
+          return new Date(bLatest) - new Date(aLatest)
+        })
+    })
+
+    // Load tags overview data
+    const loadTagsOverview = async () => {
+      const user = authService.getUser()
+      if (!user) return
+
+      try {
+        // Get all user tags
+        const response = await requestAPI.getUserTags(user)
+        if (response.tags && response.tags.length > 0) {
+          // Group notes by tag
+          const tagGroups = {}
+          
+          // Initialize tag groups
+          for (const tag of response.tags) {
+            tagGroups[tag] = []
+          }
+          
+          // For each note, get its tags and add to appropriate groups
+          for (const note of allNotes.value) {
+            try {
+              const noteTagsResponse = await requestAPI.getItemTags(user, note._id)
+              if (noteTagsResponse.tags) {
+                for (const tag of noteTagsResponse.tags) {
+                  if (tagGroups[tag]) {
+                    tagGroups[tag].push(note)
+                  }
+                }
+              }
+            } catch (error) {
+              console.log(`No tags found for note ${note._id}:`, error)
+            }
+          }
+          
+          // Convert to array format and filter out empty groups
+          tagsOverview.value = Object.entries(tagGroups)
+            .filter(([tag, notes]) => notes.length > 0)
+            .map(([tag, notes]) => ({
+              tag,
+              notes
+            }))
+        } else {
+          tagsOverview.value = []
+        }
+      } catch (error) {
+        console.error('Error loading tags overview:', error)
+        tagsOverview.value = []
+      }
+    }
+
+    // Refresh tags overview
+    const refreshTagsOverview = async () => {
+      await loadTagsOverview()
+    }
+
+    // Helper function to format relative time
+    const formatRelativeTime = (dateString) => {
+      if (!dateString) return 'Unknown'
+      const date = new Date(dateString)
+      const now = new Date()
+      const diffMs = now - date
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      
+      if (diffDays === 0) return 'Today'
+      if (diffDays === 1) return 'Yesterday'
+      if (diffDays < 7) return `${diffDays} days ago`
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+      return `${Math.floor(diffDays / 30)} months ago`
+    }
+
+    // Helper function to get folder name
+    const getFolderName = (folderId) => {
+      const folder = folders.value.find(f => f._id === folderId)
+      return folder ? folder.title : 'Unknown Folder'
+    }
 
     const initializeUser = async () => {
       const user = authService.getUser()
@@ -441,6 +588,7 @@ export default {
 
     onMounted(() => {
       initializeUser()
+      loadTagsOverview()
     })
 
     return {
@@ -468,7 +616,11 @@ export default {
       refreshNotes,
       loadAllNotes,
       handleFolderMoved,
-      handleNoteMoved
+      handleNoteMoved,
+      sortedTagsOverview,
+      refreshTagsOverview,
+      formatRelativeTime,
+      getFolderName
     }
   }
 }
@@ -476,7 +628,7 @@ export default {
 
 <style scoped>
 .dashboard {
-  height: calc(100vh - 80px);
+  height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
 }
@@ -509,6 +661,7 @@ export default {
 
 .sidebar {
   width: 300px;
+  min-height: 500px;
   background: white;
   border-radius: 8px;
   padding: 1rem;
@@ -520,11 +673,12 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: 500px;
 }
 
 .folder-view {
   flex: 1;
+  min-height: 500px;
   background: white;
   border-radius: 8px;
   padding: 1rem;
@@ -534,6 +688,7 @@ export default {
 
 .note-editor {
   flex: 1;
+  min-height: 500px;
   background: white;
   border-radius: 8px;
   padding: 1rem;
@@ -648,5 +803,126 @@ export default {
   text-align: center;
   color: #6c757d;
   font-size: 0.9rem;
+}
+
+/* Tags Overview Styles */
+.tags-overview {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.tags-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tags-overview-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.tags-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.tag-group {
+  background: white;
+  border-radius: 6px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.tag-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.tag-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.tag-count {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.tag-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tag-note-item {
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.tag-note-item:hover {
+  background-color: #f5f5f5;
+  border-color: #ddd;
+}
+
+.tag-note-item.selected {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.note-title {
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.note-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.note-date {
+  font-style: italic;
+}
+
+.note-folder {
+  background: #f8f9fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+}
+
+/* Responsive design for tags overview */
+@media (max-width: 768px) {
+  .tags-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tags-overview {
+    margin-top: 1rem;
+    padding: 0.75rem;
+  }
 }
 </style>
