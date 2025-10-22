@@ -36,12 +36,12 @@ export const authAPI = {
 // Notes API calls
 export const notesAPI = {
   // Create a new note
-  createNote: async (user, content, folderId, title) => {
+  createNote: async (user, content, folder, title) => {
     try {
       const response = await api.post('/Notes/createNote', {
         user,
         content,
-        folderId,
+        folder,
         title
       })
       return response.data
@@ -478,12 +478,12 @@ export const requestAPI = {
   },
 
   // Note management
-  createNote: async (user, content, folderId, title, tags = null) => {
+  createNote: async (user, content, folder, title, tags = null) => {
     try {
       const response = await api.post('/Request/createNote', {
         user,
         content,
-        folderId,
+        folder,
         title,
         tags
       })

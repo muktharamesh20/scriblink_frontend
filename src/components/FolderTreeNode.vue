@@ -135,7 +135,7 @@ export default {
       return hasSubfolders || hasNotes
     })
 
-    // Get notes that belong to this folder
+    // Get notes that belong to this folder (using computed folderId from backend)
     const folderNotes = computed(() => {
       return props.allNotes.filter(note => note.folderId === props.folder._id)
     })

@@ -25,7 +25,7 @@
           @folder-deleted="refreshFolders"
           @folder-moved="handleFolderMoved"
           @note-selected="selectNote"
-          @note-moved="refreshNotes"
+          @note-moved="handleNoteMoved"
           @drag-start="handleDragStart"
           @drag-end="handleDragEnd"
           @folder-drag-over="handleFolderDragOver"
@@ -56,7 +56,7 @@
             @note-selected="selectNote"
             @note-created="refreshNotes"
             @note-deleted="refreshNotes"
-            @note-moved="refreshNotes"
+            @note-moved="handleNoteMoved"
           />
         </div>
 
@@ -148,12 +148,10 @@ export default {
         console.log('🔍 filtering note:', note)
         console.log('🔍 note keys:', Object.keys(note))
         console.log('🔍 note.folderId:', note.folderId)
-        console.log('🔍 note.folder:', note.folder)
         console.log('🔍 rootFolder:', rootFolder)
         
-        // If note has no folderId or folderId is null/undefined, treat it as root note
-        // If note has folderId, check if it matches the root folder
-        const isRootNote = !note.folderId || note.folderId === rootFolder || note.folderId === null
+        // Backend now computes folderId from folder.elements for display
+        const isRootNote = note.folderId === rootFolder
         console.log('🔍 isRootNote:', isRootNote)
         return isRootNote
       })
@@ -177,6 +175,13 @@ export default {
     const handleFolderMoved = () => {
       console.log('🚀 [Dashboard.handleFolderMoved] Folder moved event received');
       refreshFolders();
+    }
+
+    const handleNoteMoved = async () => {
+      console.log('🚀 [Dashboard.handleNoteMoved] Note moved event received');
+      // Refresh both folders (to update elements arrays) and notes
+      await refreshFolders();
+      await refreshNotes();
     }
 
     const refreshFolders = async () => {
@@ -455,7 +460,8 @@ export default {
       refreshFolders,
       refreshNotes,
       loadAllNotes,
-      handleFolderMoved
+      handleFolderMoved,
+      handleNoteMoved
     }
   }
 }
