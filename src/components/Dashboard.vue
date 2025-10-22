@@ -628,7 +628,7 @@ export default {
 
 <style scoped>
 .dashboard {
-  height: calc(100vh - 60px);
+  min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
 }
@@ -654,14 +654,14 @@ export default {
 
 .dashboard-content {
   display: flex;
-  flex: 1;
   gap: 1rem;
-  min-height: 0;
+  min-height: 500px;
 }
 
 .sidebar {
   width: 300px;
   min-height: 500px;
+  max-height: 70vh;
   background: white;
   border-radius: 8px;
   padding: 1rem;
@@ -674,6 +674,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 500px;
+  max-height: 70vh;
 }
 
 .folder-view {
