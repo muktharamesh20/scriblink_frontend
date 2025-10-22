@@ -1,50 +1,87 @@
 <template>
   <div class="summary-panel">
     <div class="panel-header">
-      <h4>Summary</h4>
+      <h3>Summary</h3>
       <div class="panel-actions">
-        <button @click="generateAISummary" class="btn btn-primary btn-sm" :disabled="generating">
-          {{ generating ? 'Generating...' : '🤖 AI Summary' }}
+        <button 
+          v-if="!isEditing" 
+          @click="startEditing" 
+          class="btn-icon"
+          title="Edit summary"
+          :disabled="loading"
+        >
+          ✏️
         </button>
-        <button @click="showManualForm = !showManualForm" class="btn btn-sm">
-          {{ showManualForm ? 'Cancel' : '✏️ Manual' }}
+        <button 
+          @click="regenerateSummary" 
+          class="btn-icon"
+          title="Regenerate summary with AI"
+          :disabled="loading || generating"
+        >
+          {{ generating ? '⏳' : '🔄' }}
         </button>
       </div>
     </div>
 
-    <div v-if="showManualForm" class="manual-summary-form">
-      <textarea 
-        v-model="manualSummary" 
-        placeholder="Enter summary manually..."
-        class="form-textarea"
-        rows="3"
-      ></textarea>
-      <div class="form-actions">
-        <button @click="saveManualSummary" class="btn btn-primary btn-sm">Save</button>
-        <button @click="cancelManual" class="btn btn-secondary btn-sm">Cancel</button>
-      </div>
+    <div v-if="loading" class="loading-message">
+      <span class="spinner">⏳</span> Loading summary...
     </div>
 
-    <div class="summary-content">
-      <div v-if="!currentSummary" class="empty-summary">
-        <p>No summary available</p>
-        <p class="text-muted">Create a summary manually or generate one with AI</p>
-      </div>
-      
-      <div v-else class="summary-display">
-        <div class="summary-text">{{ currentSummary }}</div>
-        <div class="summary-actions">
-          <button @click="editSummary" class="btn btn-sm btn-secondary">Edit</button>
-          <button @click="deleteSummary" class="btn btn-sm btn-danger">Delete</button>
+    <div v-else-if="generating" class="loading-message">
+      <span class="spinner">🤖</span> Generating AI summary...
+    </div>
+
+    <div v-else class="summary-content">
+      <!-- View mode -->
+      <div v-if="!isEditing" class="summary-display">
+        <p v-if="summary && summary.trim()" class="summary-text">
+          {{ summary }}
+        </p>
+        <div v-else class="empty-summary">
+          <p class="empty-message">No summary yet.</p>
+          <button 
+            @click="generateSummary" 
+            class="btn btn-primary btn-sm"
+            :disabled="generating"
+          >
+            {{ generating ? '⏳ Generating...' : '🤖 Generate AI Summary' }}
+          </button>
         </div>
       </div>
+
+      <!-- Edit mode -->
+      <div v-else class="summary-edit">
+        <textarea 
+          v-model="editingSummary"
+          class="summary-textarea"
+          placeholder="Enter a custom summary for this note..."
+          rows="5"
+        ></textarea>
+        <div class="edit-actions">
+          <button @click="saveSummary" class="btn btn-primary btn-sm" :disabled="saving">
+            {{ saving ? 'Saving...' : 'Save' }}
+          </button>
+          <button @click="cancelEditing" class="btn btn-secondary btn-sm">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
+
+    <div v-if="lastGenerated" class="summary-metadata">
+      <small>Last updated: {{ formatDate(lastGenerated) }}</small>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { summariesAPI } from '../services/apiServices.js'
+import { ref, onMounted, watch, defineExpose } from 'vue'
+import { requestAPI } from '../services/apiServices.js'
+import { authService } from '../services/authService.js'
 
 export default {
   name: 'SummaryPanel',
@@ -52,99 +89,196 @@ export default {
     note: {
       type: Object,
       required: true
+    },
+    autoGenerate: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['summary-updated'],
   setup(props, { emit }) {
-    const currentSummary = ref('')
-    const showManualForm = ref(false)
-    const manualSummary = ref('')
-    const generating = ref(false)
+    const summary = ref('')
+    const editingSummary = ref('')
+    const isEditing = ref(false)
     const loading = ref(false)
+    const saving = ref(false)
+    const generating = ref(false)
+    const error = ref('')
+    const lastGenerated = ref(null)
+    const initialContentLength = ref(0)
 
     const loadSummary = async () => {
-      // Note: The API doesn't have a direct "get summary" endpoint
-      // This would need to be implemented based on how summaries are stored
-      // For now, we'll assume summaries are stored with the note or separately
-      currentSummary.value = ''
+      const user = authService.getUser()
+      if (!user) return
+
+      loading.value = true
+      error.value = ''
+
+      try {
+        console.log('🔍 [SummaryPanel] Loading summary for note:', props.note._id, 'user:', user)
+        const response = await requestAPI.getSummary(user, props.note._id)
+        console.log('🔍 [SummaryPanel] Summary response:', response)
+        if (response.summary) {
+          summary.value = response.summary
+          lastGenerated.value = new Date()
+        } else {
+          summary.value = ''
+        }
+      } catch (err) {
+        console.error('Error loading summary:', err)
+        // It's okay if there's no summary yet
+        summary.value = ''
+      } finally {
+        loading.value = false
+      }
     }
 
-    const generateAISummary = async () => {
-      if (!props.note || !props.note.content) {
-        alert('Note must have content to generate AI summary')
+    const generateSummary = async () => {
+      const user = authService.getUser()
+      if (!user) return
+
+      // Check if note has content
+      if (!props.note.content || props.note.content.trim().length < 10) {
+        error.value = 'Note content is too short to generate a summary'
         return
       }
 
       generating.value = true
+      error.value = ''
+
       try {
-        const response = await summariesAPI.setSummaryWithAI(props.note._id, props.note.content)
+        console.log('🤖 Generating summary for note:', props.note._id)
+        const response = await requestAPI.generateSummary(user, props.note._id)
+        
         if (response.summary) {
-          currentSummary.value = response.summary
+          summary.value = response.summary
+          lastGenerated.value = new Date()
+          initialContentLength.value = props.note.content.length
           emit('summary-updated')
+        } else if (response.error) {
+          error.value = response.error
         }
-      } catch (error) {
-        console.error('Error generating AI summary:', error)
-        alert('Error generating AI summary: ' + (error.error || 'Unknown error'))
+      } catch (err) {
+        console.error('Error generating summary:', err)
+        error.value = err.error || 'Failed to generate summary'
       } finally {
         generating.value = false
       }
     }
 
-    const saveManualSummary = async () => {
-      if (!manualSummary.value.trim()) return
-
-      try {
-        const response = await summariesAPI.setSummary(props.note._id, manualSummary.value.trim())
-        if (response.summary) {
-          currentSummary.value = response.summary
-          emit('summary-updated')
-          cancelManual()
-        }
-      } catch (error) {
-        console.error('Error saving manual summary:', error)
-        alert('Error saving summary: ' + (error.error || 'Unknown error'))
+    const regenerateSummary = async () => {
+      if (confirm('Generate a new AI summary? This will replace the current summary.')) {
+        await generateSummary()
       }
     }
 
-    const editSummary = () => {
-      manualSummary.value = currentSummary.value
-      showManualForm.value = true
+    const startEditing = () => {
+      editingSummary.value = summary.value
+      isEditing.value = true
     }
 
-    const deleteSummary = async () => {
-      if (!confirm('Are you sure you want to delete this summary?')) {
-        return
-      }
+    const cancelEditing = () => {
+      editingSummary.value = ''
+      isEditing.value = false
+    }
+
+    const saveSummary = async () => {
+      const user = authService.getUser()
+      if (!user) return
+
+      saving.value = true
+      error.value = ''
 
       try {
-        await summariesAPI.deleteSummary(props.note._id)
-        currentSummary.value = ''
+        await requestAPI.setSummary(user, props.note._id, editingSummary.value)
+        summary.value = editingSummary.value
+        lastGenerated.value = new Date()
+        initialContentLength.value = props.note.content.length
+        isEditing.value = false
         emit('summary-updated')
-      } catch (error) {
-        console.error('Error deleting summary:', error)
-        alert('Error deleting summary: ' + (error.error || 'Unknown error'))
+      } catch (err) {
+        console.error('Error saving summary:', err)
+        error.value = err.error || 'Failed to save summary'
+      } finally {
+        saving.value = false
       }
     }
 
-    const cancelManual = () => {
-      showManualForm.value = false
-      manualSummary.value = ''
+    const checkForSignificantChanges = () => {
+      if (!props.note.content) return false
+      
+      const currentLength = props.note.content.length
+      const changePercent = Math.abs(currentLength - initialContentLength.value) / Math.max(initialContentLength.value, 1)
+      
+      // Consider 30% change as significant
+      return changePercent > 0.3
     }
+
+    const autoGenerateSummaryIfNeeded = async () => {
+      // Only auto-generate if:
+      // 1. Summary is empty or whitespace
+      // 2. Note has substantial content
+      if ((!summary.value || summary.value.trim() === '') && props.note.content && props.note.content.trim().length > 50) {
+        console.log('📝 Auto-generating summary for note on exit')
+        await generateSummary()
+      } else if (summary.value && checkForSignificantChanges()) {
+        // Notify user about significant changes
+        console.log('⚠️ Significant changes detected. Consider regenerating summary.')
+      }
+    }
+
+    const formatDate = (date) => {
+      if (!date) return ''
+      return new Date(date).toLocaleString()
+    }
+
+    // Watch for auto-generate trigger
+    watch(() => props.autoGenerate, (shouldAuto) => {
+      if (shouldAuto) {
+        autoGenerateSummaryIfNeeded()
+      }
+    })
 
     onMounted(() => {
+      console.log('🔍 [SummaryPanel] Component mounted for note:', props.note._id)
       loadSummary()
+      initialContentLength.value = props.note.content?.length || 0
+    })
+
+    // Watch for note changes and reload data
+    watch(() => props.note._id, (newNoteId, oldNoteId) => {
+      if (newNoteId !== oldNoteId) {
+        console.log('🔍 [SummaryPanel] Note changed from', oldNoteId, 'to', newNoteId)
+        summary.value = ''
+        error.value = ''
+        lastGenerated.value = null
+        loadSummary()
+        initialContentLength.value = props.note.content?.length || 0
+      }
+    })
+
+    // Expose method for parent to trigger auto-generation
+    defineExpose({
+      autoGenerateSummaryIfNeeded
     })
 
     return {
-      currentSummary,
-      showManualForm,
-      manualSummary,
+      summary,
+      editingSummary,
+      isEditing,
+      loading,
+      saving,
       generating,
-      generateAISummary,
-      saveManualSummary,
-      editSummary,
-      deleteSummary,
-      cancelManual
+      error,
+      lastGenerated,
+      loadSummary,
+      generateSummary,
+      regenerateSummary,
+      startEditing,
+      cancelEditing,
+      saveSummary,
+      autoGenerateSummaryIfNeeded,
+      formatDate
     }
   }
 }
@@ -152,9 +286,9 @@ export default {
 
 <style scoped>
 .summary-panel {
+  padding: 1rem;
   background: #f8f9fa;
   border-radius: 8px;
-  padding: 1rem;
 }
 
 .panel-header {
@@ -164,10 +298,10 @@ export default {
   margin-bottom: 1rem;
 }
 
-.panel-header h4 {
-  color: #2c3e50;
-  font-size: 1rem;
+.panel-header h3 {
   margin: 0;
+  font-size: 1.2rem;
+  color: #2c3e50;
 }
 
 .panel-actions {
@@ -175,77 +309,147 @@ export default {
   gap: 0.5rem;
 }
 
-.manual-summary-form {
-  margin-bottom: 1rem;
-  padding: 0.75rem;
+.btn-icon {
   background: white;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-}
-
-.form-textarea {
-  width: 100%;
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 0.5rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 60px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
 }
 
-.form-textarea:focus {
-  outline: none;
+.btn-icon:hover:not(:disabled) {
+  background: #3498db;
   border-color: #3498db;
+  transform: scale(1.1);
 }
 
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+.btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading-message {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  font-size: 1rem;
+}
+
+.spinner {
+  display: inline-block;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .summary-content {
-  min-height: 50px;
+  margin: 1rem 0;
+}
+
+.summary-display {
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  min-height: 100px;
+}
+
+.summary-text {
+  margin: 0;
+  line-height: 1.6;
+  color: #2c3e50;
+  white-space: pre-wrap;
 }
 
 .empty-summary {
   text-align: center;
-  color: #666;
-  padding: 1rem;
+  padding: 2rem;
 }
 
-.empty-summary p {
-  margin-bottom: 0.5rem;
+.empty-message {
+  margin: 0 0 1rem 0;
+  color: #999;
+  font-style: italic;
 }
 
-.summary-display {
-  background: white;
-  border-radius: 4px;
-  padding: 1rem;
-  border: 1px solid #e9ecef;
+.summary-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.summary-text {
-  color: #333;
-  line-height: 1.5;
-  margin-bottom: 1rem;
-  white-space: pre-wrap;
+.summary-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
 }
 
-.summary-actions {
+.summary-textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.edit-actions {
   display: flex;
   gap: 0.5rem;
-  justify-content: flex-end;
+}
+
+.error-message {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c33;
+  font-size: 0.9rem;
+}
+
+.summary-metadata {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #ddd;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Button styles */
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
 }
 
 .btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-}
-
-.text-muted {
-  color: #666;
-  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
 }
 </style>

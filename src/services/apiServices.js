@@ -431,5 +431,18 @@ export const requestAPI = {
     } catch (error) {
       throw error.response?.data || error
     }
+  },
+
+  // Generate summary with AI
+  generateSummary: async (user, noteId) => {
+    try {
+      const response = await api.post('/Request/generateSummary', {
+        user,
+        noteId
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
   }
 }

@@ -66,6 +66,7 @@
     <!-- Summary Panel -->
     <div v-if="showSummary" class="summary-panel">
       <SummaryPanel 
+        ref="summaryPanelRef"
         :note="note"
         @summary-updated="refreshSummary"
       />
@@ -100,12 +101,15 @@ export default {
     const showTags = ref(false)
     const showSummary = ref(false)
     const saveTimeout = ref(null)
+    const summaryPanelRef = ref(null)
+    const initialContentLength = ref(0)
 
     // Initialize form data when note changes
     watch(() => props.note, (newNote) => {
       if (newNote) {
         noteTitle.value = newNote.title || ''
         noteContent.value = newNote.content || ''
+        initialContentLength.value = newNote.content?.length || 0
       }
     }, { immediate: true })
 
@@ -180,6 +184,12 @@ export default {
     const exitEditor = async () => {
       // Save the note before exiting
       await saveNote()
+      
+      // Auto-generate summary if needed
+      if (summaryPanelRef.value && summaryPanelRef.value.autoGenerateSummaryIfNeeded) {
+        await summaryPanelRef.value.autoGenerateSummaryIfNeeded()
+      }
+      
       emit('exit-editor')
     }
 
@@ -191,7 +201,9 @@ export default {
     }
 
     const toggleSummary = () => {
+      console.log('🔍 [NoteEditor] toggleSummary called, current showSummary:', showSummary.value)
       showSummary.value = !showSummary.value
+      console.log('🔍 [NoteEditor] showSummary after toggle:', showSummary.value)
       if (showSummary.value) {
         showTags.value = false
       }
@@ -217,6 +229,7 @@ export default {
       saving,
       showTags,
       showSummary,
+      summaryPanelRef,
       updateTitle,
       updateContent,
       onContentChange,

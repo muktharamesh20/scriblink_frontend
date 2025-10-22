@@ -1,54 +1,32 @@
 <template>
   <div class="tags-panel">
     <div class="panel-header">
-      <h4>Tags</h4>
-      <button @click="showAddForm = !showAddForm" class="btn btn-sm">
-        {{ showAddForm ? 'Cancel' : '+' }}
+      <h3>Tags</h3>
+      <p class="help-text">Select tags to organize your note</p>
+    </div>
+
+    <div class="tags-container">
+      <button
+        v-for="tag in availableTags"
+        :key="tag.value"
+        :class="['tag-button', { 'tag-active': isTagActive(tag.value) }]"
+        @click="toggleTag(tag.value)"
+        :disabled="loading"
+      >
+        <span class="tag-icon">{{ tag.icon }}</span>
+        <span class="tag-label">{{ tag.label }}</span>
       </button>
     </div>
 
-    <div v-if="showAddForm" class="add-tag-form">
-      <input 
-        v-model="newTagLabel" 
-        type="text" 
-        placeholder="Tag name"
-        class="form-input"
-        @keyup.enter="addTag"
-      />
-      <div class="form-actions">
-        <button @click="addTag" class="btn btn-primary btn-sm">Add</button>
-        <button @click="cancelAdd" class="btn btn-secondary btn-sm">Cancel</button>
-      </div>
-    </div>
-
-    <div class="tags-list">
-      <div v-if="tags.length === 0" class="empty-tags">
-        <p>No tags yet</p>
-      </div>
-      
-      <div v-else class="tags-grid">
-        <div 
-          v-for="tag in tags" 
-          :key="tag._id"
-          class="tag-item"
-        >
-          <span class="tag-label">{{ tag.label }}</span>
-          <button 
-            @click="removeTag(tag)" 
-            class="btn-remove"
-            title="Remove tag"
-          >
-            ×
-          </button>
-        </div>
-      </div>
+    <div v-if="error" class="error-message">
+      {{ error }}
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { tagsAPI } from '../services/apiServices.js'
+import { ref, onMounted, watch } from 'vue'
+import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -61,75 +39,85 @@ export default {
   },
   emits: ['tags-updated'],
   setup(props, { emit }) {
-    const tags = ref([])
-    const showAddForm = ref(false)
-    const newTagLabel = ref('')
+    const availableTags = [
+      { value: 'High Priority', label: 'High Priority', icon: '🔴' },
+      { value: 'Medium Priority', label: 'Medium Priority', icon: '🟡' },
+      { value: 'Low Priority', label: 'Low Priority', icon: '🟢' },
+      { value: 'Office Hours', label: 'Go to Office Hours', icon: '🏫' },
+      { value: 'Review Needed', label: 'Review Needed', icon: '👀' }
+    ]
+
+    const activeTags = ref([])
     const loading = ref(false)
+    const error = ref('')
 
     const loadTags = async () => {
       const user = authService.getUser()
-      if (!user || !props.note) return
+      if (!user) return
 
       try {
-        const noteTags = await tagsAPI.getTagsForItem(user, props.note._id)
-        tags.value = noteTags || []
-      } catch (error) {
-        console.error('Error loading tags:', error)
+        const response = await requestAPI.getItemTags(user, props.note._id)
+        if (response.tags) {
+          activeTags.value = response.tags
+        }
+      } catch (err) {
+        console.error('Error loading tags:', err)
+        error.value = 'Failed to load tags'
       }
     }
 
-    const addTag = async () => {
-      if (!newTagLabel.value.trim()) return
+    const isTagActive = (tagValue) => {
+      return activeTags.value.includes(tagValue)
+    }
 
+    const toggleTag = async (tagValue) => {
       const user = authService.getUser()
       if (!user) return
 
       loading.value = true
+      error.value = ''
+
       try {
-        await tagsAPI.addTag(user, newTagLabel.value.trim(), props.note._id)
-        await loadTags()
+        if (isTagActive(tagValue)) {
+          // Remove tag
+          await requestAPI.untagItem(user, props.note._id, tagValue)
+          activeTags.value = activeTags.value.filter(t => t !== tagValue)
+        } else {
+          // Add tag
+          await requestAPI.tagItem(user, props.note._id, tagValue)
+          activeTags.value.push(tagValue)
+        }
         emit('tags-updated')
-        cancelAdd()
-      } catch (error) {
-        console.error('Error adding tag:', error)
-        alert('Error adding tag: ' + (error.error || 'Unknown error'))
+      } catch (err) {
+        console.error('Error toggling tag:', err)
+        error.value = err.error || 'Failed to update tag'
       } finally {
         loading.value = false
       }
     }
 
-    const removeTag = async (tag) => {
-      if (!confirm(`Remove tag "${tag.label}" from this note?`)) {
-        return
-      }
-
-      try {
-        await tagsAPI.removeTagFromItem(tag._id, props.note._id)
-        await loadTags()
-        emit('tags-updated')
-      } catch (error) {
-        console.error('Error removing tag:', error)
-        alert('Error removing tag: ' + (error.error || 'Unknown error'))
-      }
-    }
-
-    const cancelAdd = () => {
-      showAddForm.value = false
-      newTagLabel.value = ''
-    }
-
     onMounted(() => {
+      console.log('🔍 [TagsPanel] Component mounted for note:', props.note._id)
       loadTags()
     })
 
+    // Watch for note changes and reload data
+    watch(() => props.note._id, (newNoteId, oldNoteId) => {
+      if (newNoteId !== oldNoteId) {
+        console.log('🔍 [TagsPanel] Note changed from', oldNoteId, 'to', newNoteId)
+        activeTags.value = []
+        error.value = ''
+        loadTags()
+      }
+    })
+
     return {
-      tags,
-      showAddForm,
-      newTagLabel,
+      availableTags,
+      activeTags,
       loading,
-      addTag,
-      removeTag,
-      cancelAdd
+      error,
+      isTagActive,
+      toggleTag
     }
   }
 }
@@ -137,91 +125,80 @@ export default {
 
 <style scoped>
 .tags-panel {
+  padding: 1rem;
   background: #f8f9fa;
   border-radius: 8px;
-  padding: 1rem;
 }
 
 .panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 1rem;
 }
 
-.panel-header h4 {
+.panel-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
   color: #2c3e50;
-  font-size: 1rem;
+}
+
+.help-text {
   margin: 0;
-}
-
-.add-tag-form {
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.tags-list {
-  min-height: 50px;
-}
-
-.empty-tags {
-  text-align: center;
+  font-size: 0.9rem;
   color: #666;
-  padding: 1rem;
 }
 
-.tags-grid {
+.tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
-.tag-item {
+.tag-button {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.tag-button:hover:not(:disabled) {
+  border-color: #3498db;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+}
+
+.tag-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tag-button.tag-active {
   background: #3498db;
+  border-color: #3498db;
   color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.tag-icon {
+  font-size: 1.2rem;
 }
 
 .tag-label {
-  font-weight: 500;
+  white-space: nowrap;
 }
 
-.btn-remove {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-remove:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
+.error-message {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c33;
+  font-size: 0.9rem;
 }
 </style>
