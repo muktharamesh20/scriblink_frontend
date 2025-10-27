@@ -10,7 +10,7 @@
           title="Edit summary"
           :disabled="loading"
         >
-          ✏️
+          Edit
         </button>
         <button 
           @click="regenerateSummary" 
@@ -18,18 +18,20 @@
           title="Regenerate summary with AI"
           :disabled="loading || generating"
         >
-          {{ generating ? '⏳' : '🔄' }}
+          {{ generating ? 'Generating...' : 'Regenerate' }}
         </button>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-message">
-      <span class="spinner">⏳</span> Loading summary...
-    </div>
+            <div v-if="loading" class="loading-message">
+              <div class="colorful-spinner"></div>
+              <span>Loading summary...</span>
+            </div>
 
-    <div v-else-if="generating" class="loading-message">
-      <span class="spinner">🤖</span> Generating AI summary...
-    </div>
+            <div v-else-if="generating" class="loading-message">
+              <div class="colorful-spinner"></div>
+              <span>Generating AI summary...</span>
+            </div>
 
     <div v-else class="summary-content">
              <!-- View mode -->
@@ -42,7 +44,7 @@
             class="btn btn-primary btn-sm"
             :disabled="generating"
           >
-            {{ generating ? '⏳ Generating...' : '🤖 Generate AI Summary' }}
+                    {{ generating ? 'Generating...' : 'Generate AI Summary' }}
           </button>
         </div>
       </div>
@@ -146,7 +148,7 @@ export default {
       error.value = ''
 
       try {
-        console.log('🤖 Generating summary for note:', props.note._id)
+        console.log('Generating summary for note:', props.note._id)
         const response = await requestAPI.generateSummary(user, props.note._id)
         
         if (response.summary) {
@@ -304,8 +306,9 @@ export default {
 <style scoped>
 .summary-panel {
   padding: 1rem;
-  background: #f8f9fa;
+  background: var(--bg-card); /* Use white background in light mode */
   border-radius: 8px;
+  border: 1px solid var(--border-primary); /* Add subtle border */
 }
 
 .panel-header {
@@ -318,7 +321,8 @@ export default {
 .panel-header h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #2c3e50;
+  color: var(--text-primary); /* Adapts to theme */
+  font-weight: 600; /* Make it bolder */
 }
 
 .panel-actions {
@@ -327,19 +331,24 @@ export default {
 }
 
 .btn-icon {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 0.5rem;
+  background: var(--bg-card); /* Adapts to theme */
+  border: 1px solid var(--border-primary); /* Adapts to theme */
+  border-radius: 8px; /* More modern rounded corners */
+  padding: 0.75rem 1rem; /* Better padding */
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.2s;
+  font-size: 0.9rem; /* Better font size */
+  font-weight: 500; /* Better font weight */
+  color: var(--text-primary); /* Adapts to theme */
+  transition: all var(--transition-fast); /* Use theme transition */
+  box-shadow: var(--shadow-sm); /* Add subtle shadow */
+  min-width: 80px; /* Ensure consistent width */
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #3498db;
-  border-color: #3498db;
-  transform: scale(1.1);
+  background: var(--bg-hover); /* Use theme hover color */
+  border-color: var(--border-accent); /* Use theme accent border */
+  transform: translateY(-2px); /* Subtle lift effect */
+  box-shadow: var(--shadow-md); /* Stronger shadow on hover */
 }
 
 .btn-icon:disabled {
@@ -350,18 +359,46 @@ export default {
 .loading-message {
   padding: 2rem;
   text-align: center;
-  color: #666;
+  color: var(--text-secondary); /* Adapts to theme */
   font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
-.spinner {
-  display: inline-block;
-  animation: spin 2s linear infinite;
+/* Colorful spinner matching logo aesthetic */
+.colorful-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid transparent;
+  border-top: 4px solid #ff6b6b; /* Coral red */
+  border-right: 4px solid #4ecdc4; /* Teal */
+  border-bottom: 4px solid #45b7d1; /* Sky blue */
+  border-left: 4px solid #96ceb4; /* Mint green */
+  border-radius: 50%;
+  animation: colorful-spin 1.2s linear infinite;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes colorful-spin {
+  0% { 
+    transform: rotate(0deg);
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+  }
+  25% { 
+    box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(69, 183, 209, 0.3);
+  }
+  75% { 
+    box-shadow: 0 0 20px rgba(150, 206, 180, 0.3);
+  }
+  100% { 
+    transform: rotate(360deg);
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+  }
 }
 
 .summary-content {
@@ -370,16 +407,17 @@ export default {
 
 .summary-display {
   padding: 1rem;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  background: var(--bg-card); /* Adapts to theme */
+  border-radius: 8px; /* More modern rounded corners */
+  border: 1px solid var(--border-primary); /* Adapts to theme */
   min-height: 100px;
+  box-shadow: var(--shadow-sm); /* Add subtle shadow */
 }
 
 .summary-text {
   margin: 0;
   line-height: 1.6;
-  color: #2c3e50;
+  color: var(--text-primary); /* Adapts to theme */
   white-space: pre-wrap;
 }
 
@@ -390,7 +428,7 @@ export default {
 
 .empty-message {
   margin: 0 0 1rem 0;
-  color: #999;
+  color: var(--text-secondary); /* Adapts to theme */
   font-style: italic;
 }
 
@@ -403,18 +441,21 @@ export default {
 .summary-textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid var(--border-primary); /* Adapts to theme */
+  border-radius: 8px; /* More modern rounded corners */
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.6;
   resize: vertical;
+  background: var(--bg-card); /* Adapts to theme */
+  color: var(--text-primary); /* Adapts to theme */
+  transition: all var(--transition-fast); /* Use theme transition */
 }
 
 .summary-textarea:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: var(--border-accent); /* Use theme accent border */
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1); /* Subtle focus ring */
 }
 
 .edit-actions {
@@ -425,18 +466,18 @@ export default {
 .error-message {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 4px;
-  color: #c33;
+  background: var(--bg-tertiary); /* Use theme background */
+  border: 1px solid var(--border-primary); /* Use theme border */
+  border-radius: 8px; /* More modern rounded corners */
+  color: var(--text-primary); /* Adapts to theme */
   font-size: 0.9rem;
 }
 
 .summary-metadata {
   margin-top: 1rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #ddd;
-  color: #999;
+  border-top: 1px solid var(--border-primary); /* Adapts to theme */
+  color: var(--text-secondary); /* Adapts to theme */
   font-size: 0.85rem;
 }
 

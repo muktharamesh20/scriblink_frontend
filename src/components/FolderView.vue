@@ -183,12 +183,13 @@ export default {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .folder-header h2 {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .folder-content {
@@ -197,8 +198,8 @@ export default {
 }
 
 .folder-content.drag-over {
-  background-color: #e3f2fd;
-  border: 2px dashed #2196f3;
+  background-color: rgba(66, 165, 245, 0.1);
+  border: 2px dashed var(--accent-blue);
 }
 
 .empty-folder {
@@ -208,7 +209,7 @@ export default {
   justify-content: center;
   height: 200px;
   text-align: center;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .empty-folder p {
@@ -222,18 +223,19 @@ export default {
 }
 
 .note-card {
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 12px;
   padding: 1rem;
   cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid #e9ecef;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .note-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  border-color: #3498db;
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-blue);
 }
 
 .note-header {
@@ -246,7 +248,7 @@ export default {
 .note-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0;
   flex: 1;
   margin-right: 0.5rem;
@@ -254,7 +256,7 @@ export default {
 
 .note-actions {
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-fast);
 }
 
 .note-card:hover .note-actions {
@@ -266,16 +268,18 @@ export default {
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 2px;
+  border-radius: 4px;
   font-size: 0.8rem;
+  color: var(--error);
+  transition: all var(--transition-fast);
 }
 
 .btn-delete:hover {
-  background: #ffebee;
+  background: rgba(244, 67, 54, 0.1);
 }
 
 .note-preview {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.4;
   margin-bottom: 0.75rem;
@@ -288,7 +292,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   font-size: 0.8rem;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .note-date {

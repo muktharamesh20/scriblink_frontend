@@ -14,16 +14,16 @@
       
       <div class="editor-actions">
         <button v-if="!isEditing" @click="startEditing" class="btn btn-primary btn-sm">
-          ✏️ Edit
+          Edit
         </button>
         <button v-if="isEditing" @click="stopEditing" class="btn btn-secondary btn-sm">
-          👁️ Preview
+          Preview
         </button>
         <button v-if="isEditing" @click="saveNote" class="btn btn-primary btn-sm" :disabled="saving">
           {{ saving ? 'Saving...' : 'Save' }}
         </button>
         <button @click="exitEditor" class="btn btn-secondary btn-sm">
-          ← Back
+          Back
         </button>
         <button @click="deleteNote" class="btn btn-danger btn-sm">
           Delete
@@ -40,9 +40,9 @@
       <!-- Edit Mode: Simple markdown editor -->
       <div v-else class="markdown-editor-simple">
         <div class="editor-header-simple">
-          <span>📝 Editing in Markdown</span>
+          <span>Editing in Markdown</span>
           <button @click="showMarkdownHelp = !showMarkdownHelp" class="help-btn" title="Markdown Help">
-            ❓
+            ?
           </button>
         </div>
         <div v-if="showMarkdownHelp" class="markdown-help">
@@ -81,10 +81,10 @@
       
       <div class="editor-tools">
         <button @click="toggleTags" class="btn btn-secondary btn-sm">
-          <span>🏷️</span> Tags
+          Tags
         </button>
         <button @click="toggleSummary" class="btn btn-secondary btn-sm">
-          <span>📝</span> Summary
+          Summary
         </button>
       </div>
     </div>
@@ -340,7 +340,7 @@ export default {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .editor-title {
@@ -352,15 +352,16 @@ export default {
   width: 100%;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   border: none;
   background: none;
   padding: 0.5rem 0;
   outline: none;
+  transition: border-color var(--transition-fast);
 }
 
 .title-input:focus {
-  border-bottom: 2px solid #3498db;
+  border-bottom: 2px solid var(--accent-blue);
 }
 
 .editor-actions {
@@ -384,6 +385,8 @@ export default {
   font-family: inherit;
   resize: none;
   padding: 0;
+  background: transparent;
+  color: var(--text-primary);
 }
 
 .editor-footer {
@@ -391,14 +394,15 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-primary);
 }
 
 .note-metadata {
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-primary); /* Improved visibility from text-muted */
+  font-weight: 500; /* Added weight for better readability */
 }
 
 .meta-item {
@@ -414,7 +418,7 @@ export default {
 .summary-panel {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-primary);
 }
 
 .btn-sm {
@@ -433,31 +437,33 @@ export default {
   gap: 1rem;
   margin-bottom: 1rem;
   padding: 0.5rem;
-  background-color: #f8f9fa;
-  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
 }
 
 .mode-indicator {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 /* Preview-only mode */
 .markdown-preview-only {
   height: 500px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
   overflow: hidden;
-  background-color: white;
+  background-color: var(--bg-card);
 }
 
 .markdown-preview-only .preview-content {
   height: 100%;
   padding: 1rem;
   overflow-y: auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-secondary);
   line-height: 1.6;
+  color: var(--text-primary);
 }
 
 /* Split view mode */
@@ -466,8 +472,8 @@ export default {
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   height: 500px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -478,14 +484,14 @@ export default {
   height: 100%;
 }
 
-.editor-header-small,
+.editor-header-simple,
 .preview-header-small {
-  background-color: #f1f3f4;
+  background-color: var(--bg-secondary);
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-primary);
   font-size: 0.9rem;
   font-weight: 500;
-  color: #555;
+  color: var(--text-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -497,17 +503,18 @@ export default {
   font-size: 1rem;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 3px;
-  transition: background-color 0.2s;
+  border-radius: 4px;
+  transition: background-color var(--transition-fast);
+  color: var(--text-secondary);
 }
 
 .help-btn:hover {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-hover);
 }
 
 .markdown-help {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #ddd;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
 }
@@ -515,7 +522,7 @@ export default {
 .help-content h4 {
   margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .help-content ul {
@@ -526,17 +533,19 @@ export default {
 .help-content li {
   margin-bottom: 0.25rem;
   font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .help-content code {
-  background-color: #e9ecef;
+  background-color: var(--bg-tertiary);
+  color: var(--accent-orange);
   padding: 0.1rem 0.3rem;
-  border-radius: 2px;
+  border-radius: 4px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.75rem;
 }
 
-.markdown-textarea {
+.markdown-textarea-simple {
   flex: 1;
   border: none;
   outline: none;
@@ -545,16 +554,18 @@ export default {
   line-height: 1.5;
   padding: 1rem;
   resize: none;
-  background-color: #fafafa;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .preview-content {
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
-  background-color: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-card);
+  font-family: var(--font-secondary);
   line-height: 1.6;
+  color: var(--text-primary);
 }
 
 /* Markdown content styling */
@@ -567,19 +578,41 @@ export default {
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
-.preview-content h1 { font-size: 1.8rem; border-bottom: 2px solid #eee; padding-bottom: 0.3rem; }
-.preview-content h2 { font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.2rem; }
-.preview-content h3 { font-size: 1.3rem; }
-.preview-content h4 { font-size: 1.1rem; }
-.preview-content h5 { font-size: 1rem; }
-.preview-content h6 { font-size: 0.9rem; color: #666; }
+.preview-content h1 { 
+  font-size: 1.8rem; 
+  border-bottom: 2px solid var(--border-primary); 
+  padding-bottom: 0.3rem; 
+  color: var(--accent-red);
+}
+.preview-content h2 { 
+  font-size: 1.5rem; 
+  border-bottom: 1px solid var(--border-primary); 
+  padding-bottom: 0.2rem; 
+  color: var(--accent-orange);
+}
+.preview-content h3 { 
+  font-size: 1.3rem; 
+  color: var(--accent-yellow);
+}
+.preview-content h4 { 
+  font-size: 1.1rem; 
+  color: var(--accent-green);
+}
+.preview-content h5 { 
+  font-size: 1rem; 
+  color: var(--accent-blue);
+}
+.preview-content h6 { 
+  font-size: 0.9rem; 
+  color: var(--accent-purple); 
+}
 
 .preview-content p {
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .preview-content ul,
@@ -590,31 +623,33 @@ export default {
 
 .preview-content li {
   margin-bottom: 0.25rem;
+  color: var(--text-primary);
 }
 
 .preview-content blockquote {
-  border-left: 4px solid #3498db;
+  border-left: 4px solid var(--accent-blue);
   margin: 1rem 0;
   padding: 0.5rem 1rem;
-  background-color: #f8f9fa;
-  color: #555;
+  background-color: var(--bg-secondary);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
 .preview-content code {
-  background-color: #f1f3f4;
-  padding: 0.2rem 0.4rem;
+  background-color: var(--bg-tertiary);
+  color: var(--accent-orange);
+  padding: 0.1rem 0.3rem;
   border-radius: 3px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.9em;
-  color: #e74c3c;
 }
 
 .preview-content pre {
-  background-color: #2d3748;
-  color: #e2e8f0;
-  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
+  padding: 1rem;
   overflow-x: auto;
   margin: 1rem 0;
 }
@@ -622,46 +657,53 @@ export default {
 .preview-content pre code {
   background: none;
   padding: 0;
-  color: inherit;
+  color: var(--text-primary);
+  border-radius: 0;
 }
 
 .preview-content table {
   border-collapse: collapse;
   width: 100%;
   margin: 1rem 0;
+  background-color: var(--bg-card);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .preview-content th,
 .preview-content td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   padding: 0.5rem;
   text-align: left;
 }
 
 .preview-content th {
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .preview-content a {
-  color: #3498db;
+  color: var(--accent-orange);
   text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
 .preview-content a:hover {
+  color: var(--accent-coral);
   text-decoration: underline;
 }
 
 .preview-content img {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
-  margin: 0.5rem 0;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
 }
 
 .preview-content hr {
   border: none;
-  border-top: 2px solid #eee;
+  border-top: 2px solid var(--border-primary);
   margin: 2rem 0;
 }
 

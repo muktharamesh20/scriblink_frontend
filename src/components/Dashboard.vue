@@ -4,16 +4,16 @@
       <h1>Dashboard</h1>
       <div class="dashboard-actions">
         <button @click="createNewNote" class="btn btn-primary">
-          <span>📝</span> New Note
+          New Note
         </button>
         <button @click="createNewFolder" class="btn btn-secondary">
-          <span>📁</span> New Folder
+          New Folder
         </button>
       </div>
     </div>
 
     <div class="dashboard-content">
-      <div class="sidebar">
+      <div v-if="!selectedNote" class="sidebar">
         <FolderTree 
           :folders="folders"
           :current-folder="currentFolder"
@@ -26,6 +26,7 @@
           @folder-moved="handleFolderMoved"
           @note-selected="selectNote"
           @note-moved="handleNoteMoved"
+          @note-deleted="refreshNotes"
           @drag-start="handleDragStart"
           @drag-end="handleDragEnd"
           @folder-drag-over="handleFolderDragOver"
@@ -34,7 +35,7 @@
         
       </div>
 
-      <div class="main-content">
+      <div class="main-content" :class="{ 'full-width': selectedNote }">
         <!-- Note editor takes full space when a note is selected -->
         <div v-if="selectedNote" class="note-editor">
           <NoteEditor 
@@ -67,10 +68,10 @@
             <p>Create your first note or folder to get started!</p>
             <div class="welcome-actions">
               <button @click="createNewNote" class="btn btn-primary">
-                <span>📝</span> Create Note
+                Create Note
               </button>
               <button @click="createNewFolder" class="btn btn-secondary">
-                <span>📁</span> Create Folder
+                Create Folder
               </button>
             </div>
           </div>
@@ -81,9 +82,9 @@
     <!-- Tags Overview Section -->
     <div class="tags-overview">
       <div class="tags-overview-header">
-        <h3>📋 Tags Overview</h3>
+        <h3>Tags Overview</h3>
         <button @click="refreshTagsOverview" class="btn btn-sm btn-secondary">
-          🔄 Refresh
+          Refresh
         </button>
       </div>
       <div class="tags-grid">
@@ -638,13 +639,14 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-primary);
   margin-bottom: 1rem;
 }
 
 .dashboard-header h1 {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .dashboard-actions {
@@ -662,11 +664,17 @@ export default {
   width: 300px;
   min-height: 500px;
   max-height: 70vh;
-  background: white;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
   overflow-y: auto;
+  transition: all var(--transition-normal);
+}
+
+.sidebar:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .main-content {
@@ -677,24 +685,41 @@ export default {
   max-height: 70vh;
 }
 
+.main-content.full-width {
+  width: 100%;
+  max-width: none;
+}
+
 .folder-view {
   flex: 1;
   min-height: 500px;
-  background: white;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
   overflow-y: auto;
+  transition: all var(--transition-normal);
+}
+
+.folder-view:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .note-editor {
   flex: 1;
   min-height: 500px;
-  background: white;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
   overflow-y: auto;
+  transition: all var(--transition-normal);
+}
+
+.note-editor:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .welcome {
@@ -702,9 +727,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-normal);
+}
+
+.welcome:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .welcome-content {
@@ -713,13 +744,16 @@ export default {
 }
 
 .welcome-content h2 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 1rem;
+  font-size: 1.8rem;
+  font-weight: 600;
 }
 
 .welcome-content p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 2rem;
+  font-size: 1.1rem;
 }
 
 .welcome-actions {
@@ -738,38 +772,40 @@ export default {
   gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .back-button {
-  background: #95a5a6;
-  color: white;
-  border: none;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-secondary);
   padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.3s;
+  transition: all var(--transition-fast);
 }
 
 .back-button:hover {
-  background: #7f8c8d;
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
 }
 
 .folder-header h2 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .sidebar-notes {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-primary);
 }
 
 .sidebar-notes h3 {
   margin: 0 0 1rem 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
@@ -781,28 +817,31 @@ export default {
 
 .note-item {
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .note-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--bg-hover);
+  border-color: var(--border-secondary);
+  transform: translateX(4px);
 }
 
 .note-item.active {
-  background-color: #e3f2fd;
-  border-left: 3px solid #2196f3;
+  background-color: rgba(66, 165, 245, 0.1);
+  border-left: 3px solid var(--accent-blue);
 }
 
 .note-title {
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .empty-state {
   text-align: center;
-  color: #6c757d;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -810,9 +849,15 @@ export default {
 .tags-overview {
   margin-top: 2rem;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+
+.tags-overview:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .tags-overview-header {
@@ -824,8 +869,9 @@ export default {
 
 .tags-overview-header h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .tags-grid {
@@ -835,10 +881,17 @@ export default {
 }
 
 .tag-group {
-  background: white;
-  border-radius: 6px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-fast);
+}
+
+.tag-group:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .tag-header {
@@ -847,18 +900,18 @@ export default {
   align-items: center;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .tag-name {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
 .tag-count {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: var(--accent-blue);
+  color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -873,25 +926,26 @@ export default {
 
 .tag-note-item {
   padding: 0.75rem;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
   border: 1px solid transparent;
 }
 
 .tag-note-item:hover {
-  background-color: #f5f5f5;
-  border-color: #ddd;
+  background-color: var(--bg-hover);
+  border-color: var(--border-secondary);
+  transform: translateX(4px);
 }
 
 .tag-note-item.selected {
-  background-color: #e3f2fd;
-  border-color: #2196f3;
+  background-color: rgba(66, 165, 245, 0.1);
+  border-color: var(--accent-blue);
 }
 
 .note-title {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
   font-size: 0.9rem;
 }
@@ -901,7 +955,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--text-muted);
 }
 
 .note-date {
@@ -909,9 +963,10 @@ export default {
 }
 
 .note-folder {
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   padding: 0.2rem 0.4rem;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 0.75rem;
 }
 

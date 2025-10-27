@@ -21,23 +21,20 @@
         <button 
           @click.stop="toggleExpanded" 
           class="btn-toggle"
-          v-if="hasChildren"
           :class="{ expanded: isExpanded }"
           title="Toggle folder"
         >
-          {{ isExpanded ? '📂' : '📁' }}
+          {{ isExpanded ? '▼' : '▶' }}
         </button>
-        <span v-else class="folder-spacer"></span>
         
-        <span class="folder-icon">📁</span>
         <span class="folder-name">{{ folder.title }}</span>
         <div class="folder-actions">
           <button 
-            @click.stop="console.log('🗑️ Delete button clicked!', folder); deleteFolder(folder)" 
+            @click.stop="console.log('Delete button clicked!', folder); deleteFolder(folder)" 
             class="btn-delete"
             title="Delete folder"
           >
-            🗑️
+            ×
           </button>
         </div>
       </div>
@@ -56,8 +53,15 @@
         @dragstart="handleNoteDragStart($event, note)"
         @dragend="handleNoteDragEnd"
       >
-        <span class="note-icon">📄</span>
+        <span class="note-icon">•</span>
         <span class="note-title">{{ note.title || 'Untitled Note' }}</span>
+        <button 
+          @click.stop="deleteNote(note)" 
+          class="btn-delete-note"
+          title="Delete note"
+        >
+          ×
+        </button>
       </div>
     </div>
 
@@ -115,7 +119,7 @@ export default {
       default: null
     }
   },
-  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected', 'note-moved', 'drag-start', 'drag-end', 'folder-drag-over', 'folder-drag-leave'],
+  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected', 'note-moved', 'note-deleted', 'drag-start', 'drag-end', 'folder-drag-over', 'folder-drag-leave'],
   setup(props, { emit }) {
     // Auto-expand folders that have children
     const hasSubfolders = props.folder.children && props.folder.children.length > 0
@@ -167,6 +171,32 @@ export default {
       } catch (error) {
         console.error('❌ Error deleting folder:', error)
         alert('Error deleting folder: ' + (error.error || 'Unknown error'))
+      }
+    }
+
+    const deleteNote = async (note) => {
+      console.log('🗑️ deleteNote called with:', note)
+      
+      if (!confirm(`Are you sure you want to delete "${note.title || 'Untitled Note'}"?`)) {
+        console.log('❌ User cancelled deletion')
+        return
+      }
+
+      console.log('✅ User confirmed deletion')
+      const user = authService.getUser()
+      if (!user) {
+        console.log('❌ No user found')
+        return
+      }
+
+      console.log('🔄 Calling requestAPI.deleteNote with:', { noteId: note._id, user })
+      try {
+        const result = await requestAPI.deleteNote(note._id, user)
+        console.log('✅ Note deleted successfully:', result)
+        emit('note-deleted')
+      } catch (error) {
+        console.error('❌ Error deleting note:', error)
+        alert('Error deleting note: ' + (error.error || 'Unknown error'))
       }
     }
 
@@ -348,6 +378,7 @@ export default {
       folderNotes,
       toggleExpanded,
       deleteFolder,
+      deleteNote,
       handleDragStart,
       handleDragEnd,
       handleNoteDragStart,
@@ -371,23 +402,25 @@ export default {
   align-items: center;
   padding: 0.5rem;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-  border: 2px solid transparent;
+  border-radius: 8px;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .tree-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--bg-hover);
+  border-color: var(--border-secondary);
+  transform: translateX(2px);
 }
 
 .tree-item.active {
-  background-color: #e3f2fd;
-  border-left: 3px solid #2196f3;
+  background-color: rgba(66, 165, 245, 0.1);
+  border-color: var(--accent-blue);
 }
 
 .tree-item.drag-over {
-  background-color: #e8f5e8;
-  border: 2px dashed #4caf50;
+  background-color: rgba(66, 165, 245, 0.1);
+  border: 2px dashed var(--accent-blue);
 }
 
 .tree-item.dragging {
@@ -402,13 +435,15 @@ export default {
 }
 
 .folder-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
+  color: var(--accent-blue);
 }
 
 .folder-name {
   flex: 1;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .folder-actions {
@@ -444,15 +479,17 @@ export default {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 3px;
-  font-size: 0.8rem;
-  color: #f44336;
-  transition: background-color 0.2s;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  color: var(--error);
+  transition: all var(--transition-fast);
+  line-height: 1;
 }
 
 .btn-delete:hover {
-  background-color: #ffebee;
+  background-color: rgba(244, 67, 54, 0.1);
+  transform: scale(1.1);
 }
 
 .nested-folders {
@@ -475,18 +512,20 @@ export default {
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 3px;
-  font-size: 0.8rem;
-  transition: background-color 0.2s;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  transition: all var(--transition-fast);
   width: 1.5rem;
   height: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--accent-blue);
 }
 
 .btn-toggle:hover {
-  background-color: #e0e0e0;
+  background-color: var(--bg-hover);
+  transform: scale(1.1);
 }
 
 .btn-toggle.expanded {
@@ -503,23 +542,28 @@ export default {
   align-items: center;
   padding: 0.25rem 0.5rem;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border-radius: 8px;
+  transition: all var(--transition-fast);
   margin: 0.125rem 0;
+  border: 1px solid transparent;
 }
 
 .note-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--bg-hover);
+  border-color: var(--border-secondary);
+  transform: translateX(2px);
 }
 
 .note-item.active {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: rgba(66, 165, 245, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
 }
 
 .note-icon {
   margin-right: 0.5rem;
   font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 .note-title {
@@ -528,5 +572,36 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.btn-delete-note {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.note-item:hover .btn-delete-note {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.btn-delete-note:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.1);
 }
 </style>

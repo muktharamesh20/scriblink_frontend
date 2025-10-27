@@ -2,9 +2,21 @@
   <div class="folder-tree">
     <div class="tree-header">
       <h3>Folders</h3>
-      <button @click="showCreateForm = !showCreateForm" class="btn btn-sm">
-        {{ showCreateForm ? 'Cancel' : '+' }}
-      </button>
+      <div class="dropdown-container">
+        <button @click="showDropdown = !showDropdown" class="btn btn-sm dropdown-toggle">
+          +
+        </button>
+        <div v-if="showDropdown" class="dropdown-menu">
+          <button @click="showCreateFolderForm" class="dropdown-item">
+            <span class="dropdown-icon">▸</span>
+            New Folder
+          </button>
+          <button @click="createNewNote" class="dropdown-item">
+            <span class="dropdown-icon">•</span>
+            New Note
+          </button>
+        </div>
+      </div>
     </div>
 
     <div v-if="showCreateForm" class="create-folder-form">
@@ -14,6 +26,7 @@
         placeholder="Folder name"
         class="form-input"
         @keyup.enter="createFolder"
+        ref="folderInput"
       />
       <div class="form-actions">
         <button @click="createFolder" class="btn btn-primary btn-sm">Create</button>
@@ -41,8 +54,15 @@
           @dragstart="handleNoteDragStart($event, note)"
           @dragend="handleNoteDragEnd"
         >
-          <span class="note-icon">📄</span>
+          <span class="note-icon">•</span>
           <span class="note-title">{{ note.title || 'Untitled Note' }}</span>
+          <button 
+            @click.stop="deleteNote(note)" 
+            class="btn-delete-note"
+            title="Delete note"
+          >
+            ×
+          </button>
         </div>
       </div>
 
@@ -78,7 +98,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 import FolderTreeNode from './FolderTreeNode.vue'
@@ -110,10 +130,11 @@ export default {
       default: null
     }
   },
-  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected', 'note-moved', 'drag-start', 'drag-end', 'folder-drag-over', 'folder-drag-leave'],
+  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected', 'note-moved', 'note-deleted', 'drag-start', 'drag-end', 'folder-drag-over', 'folder-drag-leave'],
   setup(props, { emit }) {
     const showCreateForm = ref(false)
     const newFolderName = ref('')
+    const showDropdown = ref(false)
 
     const createFolder = async () => {
       console.log('🚀 createFolder called')
@@ -155,6 +176,20 @@ export default {
       newFolderName.value = ''
     }
 
+    const showCreateFolderForm = () => {
+      showDropdown.value = false
+      showCreateForm.value = true
+      nextTick(() => {
+        const input = document.querySelector('.create-folder-form .form-input')
+        if (input) input.focus()
+      })
+    }
+
+    const createNewNote = () => {
+      showDropdown.value = false
+      emit('note-selected', { title: '', content: '', _id: 'new' })
+    }
+
     const deleteFolder = async (folder) => {
       if (!confirm(`Are you sure you want to delete "${folder.title}"? This will delete all contents.`)) {
         return
@@ -172,6 +207,26 @@ export default {
       } catch (error) {
         console.error('Error deleting folder:', error)
         alert('Error deleting folder: ' + (error.error || 'Unknown error'))
+      }
+    }
+
+    const deleteNote = async (note) => {
+      if (!confirm(`Are you sure you want to delete "${note.title || 'Untitled Note'}"?`)) {
+        return
+      }
+
+      try {
+        const user = authService.getUser()
+        if (!user) {
+          console.error('❌ No user found for deleteNote')
+          return
+        }
+        
+        await requestAPI.deleteNote(note._id, user)
+        emit('note-deleted')
+      } catch (error) {
+        console.error('Error deleting note:', error)
+        alert('Error deleting note: ' + (error.error || 'Unknown error'))
       }
     }
 
@@ -276,9 +331,13 @@ export default {
     return {
       showCreateForm,
       newFolderName,
+      showDropdown,
       createFolder,
       cancelCreate,
+      showCreateFolderForm,
+      createNewNote,
       deleteFolder,
+      deleteNote,
       handleNoteDragStart,
       handleNoteDragEnd,
       handleChildDragStart,
@@ -301,10 +360,10 @@ export default {
 }
 
 .tree-content.drag-over {
-  background-color: #e3f2fd;
-  border: 2px dashed #2196f3;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  background-color: rgba(66, 165, 245, 0.1);
+  border: 2px dashed var(--accent-blue);
+  border-radius: 8px;
+  transition: all var(--transition-fast);
 }
 
 .tree-header {
@@ -313,12 +372,79 @@ export default {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .tree-header h3 {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-toggle {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.dropdown-toggle:hover {
+  background: var(--accent-indigo);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem;
+  min-width: 160px;
+  z-index: 1000;
+  margin-top: 0.5rem;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-hover);
+  transform: translateX(4px);
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+  opacity: 0.7;
 }
 
 .btn-sm {
@@ -329,8 +455,9 @@ export default {
 .create-folder-form {
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background: #f8f9fa;
-  border-radius: 4px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
 }
 
 .form-actions {
@@ -347,16 +474,20 @@ export default {
 .tree-item {
   margin-bottom: 0.25rem;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border-radius: 8px;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .tree-item:hover {
-  background: #f8f9fa;
+  background: var(--bg-hover);
+  border-color: var(--border-secondary);
+  transform: translateX(2px);
 }
 
 .tree-item.active {
-  background: #e3f2fd;
+  background: rgba(66, 165, 245, 0.1);
+  border-color: var(--accent-blue);
 }
 
 .folder-item {
@@ -373,12 +504,12 @@ export default {
 .folder-name {
   flex: 1;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .folder-actions {
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-fast);
 }
 
 .tree-item:hover .folder-actions {
@@ -390,18 +521,20 @@ export default {
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 2px;
+  border-radius: 4px;
   font-size: 0.8rem;
+  color: var(--error);
+  transition: all var(--transition-fast);
 }
 
 .btn-delete:hover {
-  background: #ffebee;
+  background: rgba(244, 67, 54, 0.1);
 }
 
 .empty-state {
   text-align: center;
   padding: 2rem 1rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .empty-state p {
@@ -418,18 +551,22 @@ export default {
   align-items: center;
   padding: 0.25rem 0.5rem;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border-radius: 8px;
+  transition: all var(--transition-fast);
   margin: 0.125rem 0;
+  border: 1px solid transparent;
 }
 
 .note-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--bg-hover);
+  border-color: var(--border-secondary);
+  transform: translateX(2px);
 }
 
 .note-item.active {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: rgba(66, 165, 245, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
 }
 
 .note-icon {
@@ -443,5 +580,36 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.btn-delete-note {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.note-item:hover .btn-delete-note {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.btn-delete-note:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.1);
 }
 </style>

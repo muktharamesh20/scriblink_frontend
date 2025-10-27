@@ -2,7 +2,7 @@
   <div class="auth-container">
     <div class="auth-card">
       <div class="auth-header">
-        <h1>ScribLink</h1>
+        <img src="/logo.png" alt="ScribLink" class="logo-image" />
         <p>Create your account</p>
       </div>
 
@@ -161,17 +161,18 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-primary);
   padding: 2rem;
 }
 
 .auth-card {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 3rem;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-secondary);
 }
 
 .auth-header {
@@ -179,14 +180,22 @@ export default {
   margin-bottom: 2rem;
 }
 
-.auth-header h1 {
-  color: #2c3e50;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+.logo-image {
+  height: 120px;
+  width: auto;
+  margin-bottom: 1rem;
+  background: transparent;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: all var(--transition-fast);
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
 }
 
 .auth-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
@@ -196,33 +205,43 @@ export default {
 
 .btn-success {
   width: 100%;
-  background: #27ae60;
+  background: var(--success);
   font-size: 1rem;
   padding: 0.875rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-success:hover {
-  background: #229954;
+  background: #4caf50;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-success:disabled {
-  background: #bdc3c7;
+  background: var(--bg-tertiary);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .auth-footer {
   text-align: center;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-primary);
 }
 
 .auth-footer a {
-  color: #3498db;
+  color: var(--accent-blue);
   text-decoration: none;
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .auth-footer a:hover {
+  color: var(--accent-indigo);
   text-decoration: underline;
 }
 </style>

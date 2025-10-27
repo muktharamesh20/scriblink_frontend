@@ -2,9 +2,14 @@
   <div id="app">
     <nav class="navbar" v-if="isAuthenticated">
       <div class="nav-brand">
-        <h1>ScribLink</h1>
+        <img src="/logo.png" alt="ScribLink" class="logo-image" />
       </div>
       <div class="nav-actions">
+        <button @click="toggleTheme" class="theme-toggle" :title="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+          <div class="theme-icon">
+            <div class="theme-circle" :class="{ 'dark-mode': isDarkMode }"></div>
+          </div>
+        </button>
         <span class="user-info">Welcome, {{ currentUser }}</span>
         <button @click="logout" class="logout-btn">Logout</button>
       </div>
@@ -17,7 +22,7 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from './services/authService.js'
 
@@ -30,17 +35,60 @@ export default {
     const isAuthenticated = ref(!!localStorage.getItem('user'))
     const currentUser = ref(authService.getUsername() || '')
     
+    // Theme management
+    const isDarkMode = ref(localStorage.getItem('theme') === 'dark')
+    
+    // Apply theme on mount
+    onMounted(() => {
+      document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light')
+    })
+    
+    const toggleTheme = () => {
+      isDarkMode.value = !isDarkMode.value
+      const theme = isDarkMode.value ? 'dark' : 'light'
+      document.documentElement.setAttribute('data-theme', theme)
+      localStorage.setItem('theme', theme)
+    }
+    
+    // Function to update auth state
+    const updateAuthState = () => {
+      isAuthenticated.value = !!localStorage.getItem('user')
+      currentUser.value = authService.getUsername() || ''
+    }
+    
+    // Listen for storage changes (login/logout from other tabs)
+    const handleStorageChange = (e) => {
+      if (e.key === 'user') {
+        updateAuthState()
+      }
+    }
+    
+    onMounted(() => {
+      window.addEventListener('storage', handleStorageChange)
+      // Also listen for custom events for same-tab changes
+      window.addEventListener('auth-changed', updateAuthState)
+    })
+    
+    onUnmounted(() => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('auth-changed', updateAuthState)
+    })
+    
     const logout = () => {
       authService.removeUser()
       // Update reactive state
       isAuthenticated.value = false
       currentUser.value = ''
+      // Dispatch custom event for same-tab updates
+      window.dispatchEvent(new Event('auth-changed'))
       router.push('/login')
     }
     
     return {
       isAuthenticated,
       currentUser,
+      isDarkMode,
+      toggleTheme,
       logout
     }
   }
@@ -56,8 +104,9 @@ export default {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 #app {
@@ -65,18 +114,32 @@ body {
 }
 
 .navbar {
-  background: #2c3e50;
-  color: white;
+  background: var(--bg-card);
+  color: var(--text-primary);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border-secondary);
 }
 
-.nav-brand h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.logo-image {
+  height: 65px;
+  width: auto;
+  background: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: all var(--transition-fast);
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
 }
 
 .nav-actions {
@@ -85,24 +148,95 @@ body {
   gap: 1rem;
 }
 
+.theme-toggle {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-icon {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.theme-circle.dark-mode {
+  background: var(--text-primary);
+  box-shadow: inset 0 0 0 2px var(--bg-primary);
+}
+
+.theme-circle::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  transition: all var(--transition-fast);
+}
+
+.theme-circle.dark-mode::before {
+  background: var(--text-primary);
+  transform: scale(0.3);
+}
+
 .user-info {
   font-size: 0.9rem;
-  opacity: 0.9;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .logout-btn {
-  background: #e74c3c;
-  color: white;
-  border: none;
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border: 1px solid var(--text-primary);
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .logout-btn:hover {
-  background: #c0392b;
+  background: var(--text-secondary);
+  border-color: var(--text-secondary);
+  transform: none;
+  box-shadow: var(--shadow-sm);
 }
 
 .main-content {
@@ -112,45 +246,98 @@ body {
 }
 
 .btn {
-  background: #3498db;
-  color: white;
-  border: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
+  font-family: var(--font-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0;
 }
 
 .btn:hover {
-  background: #2980b9;
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:active {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--text-inverse);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: var(--text-secondary);
+  border-color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:active {
+  background: var(--text-primary);
+  transform: none;
 }
 
 .btn-secondary {
-  background: #95a5a6;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  font-weight: 500;
 }
 
 .btn-secondary:hover {
-  background: #7f8c8d;
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+  color: var(--text-primary);
 }
 
 .btn-danger {
-  background: #e74c3c;
+  background: var(--error);
+  border-color: var(--error);
+  color: var(--text-inverse);
+  font-weight: 600;
 }
 
 .btn-danger:hover {
-  background: #c0392b;
+  background: var(--text-secondary);
+  border-color: var(--text-secondary);
 }
 
 .btn-success {
-  background: #27ae60;
+  background: var(--success);
+  border-color: var(--success);
+  color: var(--text-inverse);
+  font-weight: 600;
 }
 
 .btn-success:hover {
-  background: #229954;
+  background: #2d8f47;
+  border-color: #2d8f47;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
 }
 
 .form-group {
@@ -160,29 +347,46 @@ body {
 .form-label {
   display: block;
   margin-bottom: 0.5rem;
+  font-family: var(--font-secondary);
   font-weight: 500;
+  color: var(--text-primary);
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
+  font-family: var(--font-secondary);
   font-size: 1rem;
-  transition: border-color 0.2s;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
 }
 
 .card {
-  background: white;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
   margin-bottom: 1rem;
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .card-header {
@@ -191,13 +395,13 @@ body {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .grid {
@@ -241,25 +445,25 @@ body {
 .gap-2 { gap: 1rem; }
 
 .text-muted {
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .error {
-  color: #e74c3c;
-  background: #fdf2f2;
+  color: var(--error);
+  background: rgba(244, 67, 54, 0.1);
   padding: 0.75rem;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-bottom: 1rem;
-  border: 1px solid #fecaca;
+  border: 1px solid rgba(244, 67, 54, 0.2);
 }
 
 .success {
-  color: #27ae60;
-  background: #f0f9f0;
+  color: var(--success);
+  background: rgba(102, 187, 106, 0.1);
   padding: 0.75rem;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-bottom: 1rem;
-  border: 1px solid #c6f6d5;
+  border: 1px solid rgba(102, 187, 106, 0.2);
 }
 </style>

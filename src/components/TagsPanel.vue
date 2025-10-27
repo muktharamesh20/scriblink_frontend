@@ -40,11 +40,11 @@ export default {
   emits: ['tags-updated'],
   setup(props, { emit }) {
     const availableTags = [
-      { value: 'High Priority', label: 'High Priority', icon: '🔴' },
-      { value: 'Medium Priority', label: 'Medium Priority', icon: '🟡' },
-      { value: 'Low Priority', label: 'Low Priority', icon: '🟢' },
-      { value: 'Office Hours', label: 'Go to Office Hours', icon: '🏫' },
-      { value: 'Review Needed', label: 'Review Needed', icon: '👀' }
+      { value: 'High Priority', label: 'High Priority', icon: '●' },
+      { value: 'Medium Priority', label: 'Medium Priority', icon: '●' },
+      { value: 'Low Priority', label: 'Low Priority', icon: '●' },
+      { value: 'Office Hours', label: 'Go to Office Hours', icon: '●' },
+      { value: 'Review Needed', label: 'Review Needed', icon: '●' }
     ]
 
     const activeTags = ref([])
@@ -58,7 +58,11 @@ export default {
       try {
         const response = await requestAPI.getItemTags(user, props.note._id)
         if (response.tags) {
-          activeTags.value = response.tags
+          // Store tag objects with both label and id
+          activeTags.value = response.tags.map(tag => ({
+            label: tag.label || tag,
+            id: tag._id || tag.id || tag
+          }))
         }
       } catch (err) {
         console.error('Error loading tags:', err)
@@ -67,7 +71,7 @@ export default {
     }
 
     const isTagActive = (tagValue) => {
-      return activeTags.value.includes(tagValue)
+      return activeTags.value.some(tag => tag.label === tagValue)
     }
 
     const toggleTag = async (tagValue) => {
@@ -79,13 +83,23 @@ export default {
 
       try {
         if (isTagActive(tagValue)) {
-          // Remove tag
-          await requestAPI.untagItem(user, props.note._id, tagValue)
-          activeTags.value = activeTags.value.filter(t => t !== tagValue)
+          // Remove tag - find the tag object to get the ID
+          const tagToRemove = activeTags.value.find(tag => tag.label === tagValue)
+          if (tagToRemove) {
+            // Use tag ID if available, otherwise use the label
+            const tagIdentifier = tagToRemove.id || tagToRemove.label
+            console.log('🗑️ Removing tag with identifier:', tagIdentifier)
+            await requestAPI.untagItem(user, props.note._id, tagIdentifier)
+            activeTags.value = activeTags.value.filter(tag => tag.label !== tagValue)
+          }
         } else {
           // Add tag
-          await requestAPI.tagItem(user, props.note._id, tagValue)
-          activeTags.value.push(tagValue)
+          const response = await requestAPI.tagItem(user, props.note._id, tagValue)
+          // Store the tag with the ID returned from the API
+          activeTags.value.push({ 
+            label: tagValue, 
+            id: response.tag || response.tagId || null 
+          })
         }
         emit('tags-updated')
       } catch (err) {
@@ -126,8 +140,10 @@ export default {
 <style scoped>
 .tags-panel {
   padding: 1rem;
-  background: #f8f9fa;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
+  box-shadow: var(--shadow-sm);
 }
 
 .panel-header {
@@ -137,13 +153,13 @@ export default {
 .panel-header h3 {
   margin: 0 0 0.5rem 0;
   font-size: 1.2rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .help-text {
   margin: 0;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .tags-container {
@@ -155,21 +171,24 @@ export default {
 .tag-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: white;
-  border: 2px solid #ddd;
-  border-radius: 6px;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-  color: #555;
+  transition: all var(--transition-fast);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
 }
 
 .tag-button:hover:not(:disabled) {
-  border-color: #3498db;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background: var(--bg-hover);
 }
 
 .tag-button:disabled {
@@ -178,27 +197,30 @@ export default {
 }
 
 .tag-button.tag-active {
-  background: #3498db;
-  border-color: #3498db;
-  color: white;
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--text-inverse);
   font-weight: 600;
+  box-shadow: var(--shadow-md);
 }
 
 .tag-icon {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .tag-label {
   white-space: nowrap;
+  letter-spacing: 0.025em;
 }
 
 .error-message {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 4px;
-  color: #c33;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 </style>

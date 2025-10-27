@@ -348,12 +348,12 @@ export const requestAPI = {
     }
   },
 
-  untagItem: async (user, itemId, tagLabel) => {
+  untagItem: async (user, itemId, tagIdentifier) => {
     try {
       const response = await api.post('/Request/untagItem', {
         user,
         itemId,
-        tagLabel
+        tagId: tagIdentifier  // This can be either a tag ID or tag label
       })
       return response.data
     } catch (error) {
