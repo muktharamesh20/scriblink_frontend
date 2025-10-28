@@ -34,7 +34,7 @@
     <div class="editor-content" :class="{ 'has-panel': showTags || showSummary }">
       <!-- Preview Mode: Beautiful read-only markdown -->
       <div v-if="!isEditing" class="markdown-preview-only">
-        <div class="preview-content" v-html="renderedMarkdown"></div>
+        <div class="preview-content" v-html="renderedMarkdown" @click="handlePreviewClick"></div>
       </div>
 
       <!-- Edit Mode: Simple markdown editor -->
@@ -60,6 +60,7 @@
           </div>
         </div>
         <textarea 
+          ref="markdownTextarea"
           v-model="noteContent" 
           class="markdown-textarea-simple"
           placeholder="Write your markdown here..."
@@ -142,6 +143,7 @@ export default {
     const initialContentLength = ref(0)
     const isEditing = ref(false) // Start in preview mode by default
     const showMarkdownHelp = ref(false)
+    const markdownTextarea = ref(null)
 
     // Initialize form data when note changes
     watch(() => props.note, (newNote) => {
@@ -299,6 +301,42 @@ export default {
       isEditing.value = false
     }
 
+    // Handle click on preview to switch to edit mode
+    const handlePreviewClick = async (event) => {
+      // Switch to edit mode
+      isEditing.value = true
+      
+      // Wait for the DOM to update
+      await nextTick()
+      
+      // Focus the textarea
+      if (markdownTextarea.value) {
+        markdownTextarea.value.focus()
+        
+        // Try to estimate cursor position based on click location
+        // This is a simplified approach - we could make it more sophisticated
+        const textarea = markdownTextarea.value
+        const clickY = event.clientY
+        const textareaRect = textarea.getBoundingClientRect()
+        const relativeY = clickY - textareaRect.top
+        
+        // Estimate line number based on click position
+        const lineHeight = 20 // Approximate line height
+        const estimatedLine = Math.max(0, Math.floor(relativeY / lineHeight))
+        
+        // Find the position in the text content
+        const lines = noteContent.value.split('\n')
+        let cursorPosition = 0
+        
+        for (let i = 0; i < Math.min(estimatedLine, lines.length); i++) {
+          cursorPosition += lines[i].length + 1 // +1 for newline
+        }
+        
+        // Set cursor position
+        textarea.setSelectionRange(cursorPosition, cursorPosition)
+      }
+    }
+
     return {
       noteTitle,
       noteContent,
@@ -321,7 +359,9 @@ export default {
       toggleSummary,
       refreshTags,
       refreshSummary,
-      formatDate
+      formatDate,
+      markdownTextarea,
+      handlePreviewClick
     }
   }
 }
@@ -538,6 +578,7 @@ export default {
   overflow-y: auto;
   font-family: var(--font-secondary);
   line-height: 1.6;
+  cursor: pointer;
   color: var(--text-primary);
 }
 
