@@ -289,8 +289,23 @@ export default {
 
     // Helper function to get folder name
     const getFolderName = (folderId) => {
-      const folder = folders.value.find(f => f._id === folderId)
-      return folder ? folder.title : 'Unknown Folder'
+      // Search through all folders recursively
+      const findFolderRecursively = (folderList) => {
+        for (const folder of folderList) {
+          if (folder._id === folderId) {
+            return folder.title
+          }
+          // Search in nested folders
+          if (folder.children && folder.children.length > 0) {
+            const found = findFolderRecursively(folder.children)
+            if (found) return found
+          }
+        }
+        return null
+      }
+      
+      const folderName = findFolderRecursively(folders.value)
+      return folderName || 'Unknown Folder'
     }
 
     const initializeUser = async () => {
