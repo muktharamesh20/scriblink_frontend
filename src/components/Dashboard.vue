@@ -95,6 +95,13 @@
                 <span class="note-date">{{ formatRelativeTime(note.last_modified) }}</span>
                 <span v-if="note.folderId && note.folderId !== rootFolderId" class="note-folder">{{ getFolderName(note.folderId) }}</span>
               </div>
+              <button 
+                @click.stop="removeTagFromNote(tagGroup.tag, note)"
+                class="btn-remove-tag"
+                title="Remove tag from note"
+              >
+                ×
+              </button>
             </div>
           </div>
         </div>
@@ -238,12 +245,25 @@ export default {
         // Get all user tags
         const response = await requestAPI.getUserTags(user)
         if (response.tags && response.tags.length > 0) {
+          // Create a map of tag labels to tag IDs
+          const tagIdMap = {}
+          for (const tag of response.tags) {
+            if (typeof tag === 'object' && tag.label && tag._id) {
+              tagIdMap[tag.label] = tag._id
+            }
+          }
+          
           // Group notes by tag
           const tagGroups = {}
           
-          // Initialize tag groups
+          // Initialize tag groups with both label and ID
           for (const tag of response.tags) {
-            tagGroups[tag] = []
+            const tagLabel = typeof tag === 'string' ? tag : tag.label
+            tagGroups[tagLabel] = {
+              label: tagLabel,
+              id: typeof tag === 'string' ? tagIdMap[tag] : tag._id,
+              notes: []
+            }
           }
           
           // For each note, get its tags and add to appropriate groups
@@ -263,10 +283,16 @@ export default {
               
               if (tagsArray.length > 0) {
                 for (const tag of tagsArray) {
-                  // Handle both string tags and object tags
+                  // Handle both string tags and object tags with tagId and label
                   const tagLabel = typeof tag === 'string' ? tag : tag.label
+                  const tagId = typeof tag === 'string' ? tagIdMap[tag] : tag.tagId
+                  
                   if (tagGroups[tagLabel]) {
-                    tagGroups[tagLabel].push(note)
+                    // Store the note with its tag ID for removal
+                    tagGroups[tagLabel].notes.push({
+                      ...note,
+                      tagId: tagId
+                    })
                   }
                 }
               }
@@ -277,10 +303,11 @@ export default {
           
           // Convert to array format and filter out empty groups
           tagsOverview.value = Object.entries(tagGroups)
-            .filter(([tag, notes]) => notes.length > 0)
-            .map(([tag, notes]) => ({
-              tag,
-              notes
+            .filter(([tagLabel, tagData]) => tagData.notes.length > 0)
+            .map(([tagLabel, tagData]) => ({
+              tag: tagLabel,
+              tagId: tagData.id,
+              notes: tagData.notes
             }))
         } else {
           tagsOverview.value = []
@@ -291,6 +318,26 @@ export default {
       }
     }
 
+    const removeTagFromNote = async (tagLabel, note) => {
+      const user = authService.getUser()
+      if (!user) return
+
+      try {
+        // Use the tagId that was stored with the note
+        const tagId = note.tagId || tagLabel // Fallback to label if no ID
+        
+        console.log('🏷️ [Dashboard] Removing tag from note:', { tagLabel, tagId, noteId: note._id })
+        await requestAPI.untagItem(user, note._id, tagId)
+        
+        // Refresh the tags overview to reflect the change
+        await loadTagsOverview()
+        
+        console.log('✅ [Dashboard] Tag removed successfully')
+      } catch (error) {
+        console.error('❌ [Dashboard] Error removing tag:', error)
+        alert('Error removing tag: ' + (error.error || 'Unknown error'))
+      }
+    }
 
     // Helper function to format relative time
     const formatRelativeTime = (dateString) => {
@@ -689,6 +736,7 @@ export default {
       handleNoteMoved,
       sortedTagsOverview,
       rootFolderId,
+      removeTagFromNote,
       formatRelativeTime,
       getFolderName
     }
@@ -1049,6 +1097,7 @@ export default {
   cursor: pointer;
   transition: all var(--transition-fast);
   border: 1px solid transparent;
+  position: relative;
 }
 
 .tag-note-item:hover {
@@ -1060,6 +1109,36 @@ export default {
 .tag-note-item.selected {
   background-color: rgba(66, 165, 245, 0.1);
   border-color: var(--accent-blue);
+}
+
+.btn-remove-tag {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.tag-note-item:hover .btn-remove-tag {
+  opacity: 1;
+}
+
+.btn-remove-tag:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.1);
 }
 
 .note-title {
