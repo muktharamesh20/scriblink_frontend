@@ -3,7 +3,6 @@
     <div class="auth-card">
       <div class="auth-header">
         <img src="/scriblink.png" alt="ScribLink" class="logo-image" />
-        <p>Sign in to your account</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="auth-form">
