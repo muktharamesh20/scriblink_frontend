@@ -241,10 +241,23 @@ export default {
           for (const note of allNotes.value) {
             try {
               const noteTagsResponse = await requestAPI.getItemTags(user, note._id)
-              if (noteTagsResponse.tags) {
-                for (const tag of noteTagsResponse.tags) {
-                  if (tagGroups[tag]) {
-                    tagGroups[tag].push(note)
+              
+              // Handle both old format {tags: [...]} and new format [...]
+              let tagsArray = []
+              if (noteTagsResponse && Array.isArray(noteTagsResponse)) {
+                // New format: direct array of tag objects
+                tagsArray = noteTagsResponse
+              } else if (noteTagsResponse && noteTagsResponse.tags && Array.isArray(noteTagsResponse.tags)) {
+                // Old format: {tags: [...]}
+                tagsArray = noteTagsResponse.tags
+              }
+              
+              if (tagsArray.length > 0) {
+                for (const tag of tagsArray) {
+                  // Handle both string tags and object tags
+                  const tagLabel = typeof tag === 'string' ? tag : tag.label
+                  if (tagGroups[tagLabel]) {
+                    tagGroups[tagLabel].push(note)
                   }
                 }
               }
