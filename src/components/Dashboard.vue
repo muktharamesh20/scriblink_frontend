@@ -28,6 +28,7 @@
           @folder-deleted="refreshFolders"
           @folder-moved="handleFolderMoved"
           @note-selected="selectNote"
+          @note-created="handleNoteCreated"
           @note-moved="handleNoteMoved"
           @note-deleted="refreshNotes"
           @drag-start="handleDragStart"
@@ -58,7 +59,7 @@
           :folder="currentFolder"
           :notes="currentFolderNotes"
           @note-selected="selectNote"
-          @note-created="refreshNotes"
+          @note-created="handleNoteCreated"
           @note-deleted="refreshNotes"
           @note-moved="handleNoteMoved"
         />
@@ -564,11 +565,51 @@ export default {
           const newNote = notes.value.find(note => note._id === response.note)
           if (newNote) {
             selectNote(newNote)
+          } else {
+            // If note not found in refreshed list, create a temporary note object
+            // This handles race conditions where the note might not be immediately available
+            console.log('⚠️ Note not found in refreshed list, creating temporary note object')
+            const tempNote = {
+              _id: response.note,
+              title: 'Untitled Note',
+              content: 'Start writing your note...',
+              folderId: folderId,
+              date_created: new Date().toISOString(),
+              last_modified: new Date().toISOString()
+            }
+            selectNote(tempNote)
           }
         }
       } catch (error) {
         console.error('❌ Error creating note:', error)
         alert('Error creating note: ' + (error.error || 'Unknown error'))
+      }
+    }
+
+    const handleNoteCreated = async (response) => {
+      console.log('🔄 Note created from FolderView, refreshing notes...')
+      await refreshNotes()
+      
+      // Use the same mechanism as createNewNote - find note by ID from response
+      if (response && response.note) {
+        const newNote = notes.value.find(note => note._id === response.note)
+        if (newNote) {
+          console.log('📝 Selecting newly created note:', newNote.title)
+          selectNote(newNote)
+        } else {
+          // If note not found in refreshed list, create a temporary note object
+          // This handles race conditions where the note might not be immediately available
+          console.log('⚠️ Note not found in refreshed list, creating temporary note object')
+          const tempNote = {
+            _id: response.note,
+            title: 'Untitled Note',
+            content: 'Start writing your note...',
+            folderId: currentFolder.value?._id || authService.getRootFolder(),
+            date_created: new Date().toISOString(),
+            last_modified: new Date().toISOString()
+          }
+          selectNote(tempNote)
+        }
       }
     }
 
@@ -615,6 +656,7 @@ export default {
       handleFolderDragLeave,
       createNewNote,
       createNewFolder,
+      handleNoteCreated,
       refreshFolders,
       refreshNotes,
       loadAllNotes,
@@ -658,7 +700,7 @@ export default {
 .dashboard-content {
   display: flex;
   align-items: center;
-  padding: 2rem;
+  padding: 2rem 2rem 2rem 2rem;
   width: 100%;
   gap: 2rem;
   background: var(--bg-secondary);
@@ -902,14 +944,13 @@ export default {
 .tags-overview {
   width: 100%;
   background: var(--bg-primary);
-  border-top: 1px solid var(--border-primary);
   transition: all var(--transition-normal);
 }
 
 .tags-overview-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0;
 }
 
 .tags-overview-header {
@@ -917,6 +958,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  padding: 1rem 1rem 0 1rem;
 }
 
 .tags-overview-header h3 {
@@ -930,6 +972,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
+  padding: 0 1rem 1rem 1rem;
 }
 
 .tag-group {

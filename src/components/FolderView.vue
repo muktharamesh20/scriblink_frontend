@@ -84,7 +84,7 @@ export default {
         // Use unified Request API to create note in the current folder
         const response = await requestAPI.createNote(user, 'Start writing your note...', props.folder._id, 'Untitled Note')
         if (response.note) {
-          emit('note-created')
+          emit('note-created', response)
         }
       } catch (error) {
         console.error('Error creating note:', error)

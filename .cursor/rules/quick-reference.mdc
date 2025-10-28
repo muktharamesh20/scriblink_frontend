@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+description: Quick reference guide for ScribLink development
+---
+
+# ScribLink Development Quick Reference
+
+## 🏗️ Project Structure
+See [project-structure.mdc](mdc:.cursor/rules/project-structure.mdc) for complete architecture overview.
+
+## 🎨 Styling & Theming
+- **CSS Variables**: Always use variables from [style.css](mdc:src/style.css)
+- **Color Palette**: Neutral colors only - no bright reds/blues/teals
+- **Layout**: Use `100vw`/`100vh` for full viewport coverage
+- **Details**: [css-guidelines.mdc](mdc:.cursor/rules/css-guidelines.mdc)
+
+## ⚡ Vue.js Patterns
+- **Composition API**: Always use Composition API with `<script setup>`
+- **Event Handling**: Props down, events up with data
+- **Reactive State**: Use `ref()` and `computed()`
+- **Details**: [vue-patterns.mdc](mdc:.cursor/rules/vue-patterns.mdc)
+
+## 🔧 JavaScript & API
+- **Service Layer**: Use [apiServices.js](mdc:src/services/apiServices.js) for all API calls
+- **Error Handling**: Always use try-catch with descriptive logging
+- **Note Creation**: Use consistent pattern with response.note ID
+- **Details**: [javascript-patterns.mdc](mdc:.cursor/rules/javascript-patterns.mdc)
+
+## 📝 Markdown Editor
+- **NoteEditor**: [NoteEditor.vue](mdc:src/components/NoteEditor.vue) - Full-screen layout
+- **SummaryPanel**: [SummaryPanel.vue](mdc:src/components/SummaryPanel.vue) - Scrollable content box
+- **Click-to-Edit**: Preview mode with click-to-edit functionality
+- **Details**: [markdown-editor.mdc](mdc:.cursor/rules/markdown-editor.mdc)
+
+## 🐛 Common Issues & Solutions
+- **"Note with ID new not found"**: Use response.note ID for selection
+- **Layout Issues**: Use 100vw/100vh for full coverage
+- **Color Inconsistencies**: Always use CSS variables
+- **Details**: [common-patterns.mdc](mdc:.cursor/rules/common-patterns.mdc)
+
+## 🔍 Debugging
+- **Console Logging**: Use emoji prefixes (🔍, ✅, ❌, ⚠️)
+- **API Responses**: Always log responses for debugging
+- **State Changes**: Log component state updates
+- **Details**: [debugging-guide.mdc](mdc:.cursor/rules/debugging-guide.mdc)
+
+## 🚀 Quick Start
+1. **New Component**: Follow [vue-patterns.mdc](mdc:.cursor/rules/vue-patterns.mdc)
+2. **Styling**: Use [css-guidelines.mdc](mdc:.cursor/rules/css-guidelines.mdc)
+3. **API Calls**: Follow [javascript-patterns.mdc](mdc:.cursor/rules/javascript-patterns.mdc)
+4. **Debugging**: Use [debugging-guide.mdc](mdc:.cursor/rules/debugging-guide.mdc)

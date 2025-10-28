@@ -2,7 +2,7 @@
   <div class="auth-container">
     <div class="auth-card">
       <div class="auth-header">
-        <img src="/logo.png" alt="ScribLink" class="logo-image" />
+        <img src="/scriblink.png" alt="ScribLink" class="logo-image" />
         <p>Create your account</p>
       </div>
 
@@ -161,12 +161,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   padding: 2rem;
 }
 
 .auth-card {
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 3rem;
   width: 100%;
@@ -181,17 +181,28 @@ export default {
 }
 
 .logo-image {
-  height: 120px;
+  height: 40px;
   width: auto;
-  margin-bottom: 1rem;
+  margin: 0 auto 1rem auto;
+  display: block;
   background: transparent;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   transition: all var(--transition-fast);
 }
 
+/* Dark mode logo styling - make it white with transparent background */
+[data-theme="dark"] .logo-image {
+  filter: brightness(0) invert(1) drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
+}
+
 .logo-image:hover {
   transform: scale(1.05);
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+}
+
+/* Dark mode hover effect */
+[data-theme="dark"] .logo-image:hover {
+  filter: brightness(0) invert(1) drop-shadow(0 6px 12px rgba(255, 255, 255, 0.4));
 }
 
 .auth-header p {
@@ -206,6 +217,7 @@ export default {
 .btn-success {
   width: 100%;
   background: var(--success);
+  color: var(--text-inverse);
   font-size: 1rem;
   padding: 0.875rem;
   border-radius: 8px;
@@ -215,7 +227,8 @@ export default {
 }
 
 .btn-success:hover {
-  background: #4caf50;
+  background: var(--bg-hover);
+  color: var(--text-primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -243,5 +256,58 @@ export default {
 .auth-footer a:hover {
   color: var(--accent-indigo);
   text-decoration: underline;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 2px rgba(30, 30, 30, 0.1);
+}
+
+.form-input:disabled {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.error {
+  background: var(--accent-error);
+  color: var(--text-inverse);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.success {
+  background: var(--success);
+  color: var(--text-inverse);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
 </style>

@@ -1,0 +1,52 @@
+---
+globs: *.js
+description: JavaScript and API service patterns for consistent data handling
+---
+
+# JavaScript & API Service Guidelines
+
+## Service Layer Architecture
+- **API Services**: [apiServices.js](mdc:src/services/apiServices.js) - Unified interface for all API calls
+- **Auth Service**: [authService.js](mdc:src/services/authService.js) - Authentication and user management
+- **API Client**: [api.js](mdc:src/services/api.js) - Axios configuration and base HTTP client
+
+## API Call Patterns
+```javascript
+// Always use try-catch for async operations
+try {
+  const response = await requestAPI.createNote(user, content, folderId, title)
+  if (response.note) {
+    // Handle success
+  }
+} catch (error) {
+  console.error('❌ Error:', error)
+  alert('Error: ' + (error.error || 'Unknown error'))
+}
+```
+
+## Error Handling
+- **Console Logging**: Use descriptive emoji prefixes (`🔍`, `✅`, `❌`, `⚠️`)
+- **User Feedback**: Always show user-friendly error messages
+- **Error Propagation**: Pass meaningful error data to components
+
+## Data Flow Patterns
+- **Note Creation**: Always refresh notes list after creation and select new note
+- **Folder Operations**: Emit events to parent components for state updates
+- **Authentication**: Use authService for user state management
+
+## Common Functions
+- **Note Selection**: Use consistent `selectNote(note)` pattern
+- **Data Refresh**: Use `refreshNotes()`, `refreshFolders()` for data updates
+- **Event Emission**: Emit events with relevant data (`emit('note-created', response)`)
+
+## Async/Await Best Practices
+- **Always await**: Don't forget await for async operations
+- **Error Boundaries**: Wrap async operations in try-catch
+- **Loading States**: Use reactive loading flags for UI feedback
+- **Race Conditions**: Handle multiple async operations carefully
+
+## Debugging Patterns
+- **Console Logs**: Use structured logging with context
+- **Response Logging**: Log API responses for debugging
+- **State Logging**: Log component state changes
+- **User Actions**: Log user interactions for troubleshooting

@@ -1,0 +1,124 @@
+---
+globs: *.vue
+description: Markdown editor and note editing specific patterns and requirements
+---
+
+# Markdown Editor & Note Editing Guidelines
+
+## NoteEditor Component Patterns
+The [NoteEditor.vue](mdc:src/components/NoteEditor.vue) component handles both editing and preview modes with specific patterns:
+
+### Mode Switching
+```javascript
+// Click-to-edit functionality
+const handlePreviewClick = async (event) => {
+  isEditing.value = true
+  await nextTick()
+  if (markdownTextarea.value) {
+    markdownTextarea.value.focus()
+    // Estimate cursor position based on click
+  }
+}
+```
+
+### Full-Screen Layout
+```css
+.note-editor {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.editor-header-fullscreen,
+.editor-footer {
+  width: 100vw;
+  position: fixed;
+  left: 0;
+  right: 0;
+}
+```
+
+### Panel Positioning
+```css
+.note-editor .tags-panel,
+.note-editor .summary-panel {
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  z-index: 99;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+```
+
+## SummaryPanel Component Patterns
+The [SummaryPanel.vue](mdc:src/components/SummaryPanel.vue) component has specific styling requirements:
+
+### Content Box Styling
+```css
+.summary-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-sm);
+}
+```
+
+### Edit Mode Styling
+```css
+.summary-textarea {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+```
+
+## Markdown Rendering
+- **Library**: Use `marked` for markdown parsing
+- **Syntax Highlighting**: Use `highlight.js` for code blocks
+- **Preview Mode**: Render markdown as HTML with click-to-edit
+- **Edit Mode**: Show raw markdown in textarea
+
+## Note Creation Patterns
+Always follow this pattern for note creation:
+
+```javascript
+// 1. Create note via API
+const response = await requestAPI.createNote(user, content, folderId, title)
+
+// 2. Refresh notes list
+await refreshNotes()
+
+// 3. Find and select the new note
+if (response.note) {
+  const newNote = notes.value.find(note => note._id === response.note)
+  if (newNote) {
+    selectNote(newNote)
+  }
+}
+```
+
+## Color Scheme for Note Editor
+- **Header/Footer**: Use `--bg-secondary` (darker color)
+- **Content Area**: Use `--bg-primary` (lighter color)
+- **Panels**: Use `--bg-secondary` for panel containers
+- **Panel Content**: Use `--bg-primary` for panel content areas
+
+## Event Handling
+- **Note Selection**: Use `selectNote(note)` for consistent selection
+- **Content Updates**: Use `onContentChange` for real-time updates
+- **Panel Toggles**: Use `showTags`/`showSummary` reactive flags
+- **Mode Switching**: Use `isEditing` reactive flag
+
+## Accessibility
+- **Keyboard Navigation**: Support Tab navigation
+- **Screen Readers**: Use proper ARIA labels
+- **Focus Management**: Manage focus when switching modes
+- **Color Contrast**: Ensure sufficient contrast ratios

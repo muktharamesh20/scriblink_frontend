@@ -130,7 +130,7 @@ export default {
       default: null
     }
   },
-  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected', 'note-moved', 'note-deleted', 'drag-start', 'drag-end', 'folder-drag-over', 'folder-drag-leave'],
+  emits: ['folder-selected', 'folder-created', 'folder-deleted', 'folder-moved', 'note-selected', 'note-created', 'note-moved', 'note-deleted', 'drag-start', 'drag-end', 'folder-drag-over', 'folder-drag-leave'],
   setup(props, { emit }) {
     const showCreateForm = ref(false)
     const newFolderName = ref('')
@@ -185,9 +185,61 @@ export default {
       })
     }
 
-    const createNewNote = () => {
+    const createNewNote = async () => {
       showDropdown.value = false
-      emit('note-selected', { title: '', content: '', _id: 'new' })
+      
+      const user = authService.getUser()
+      const rootFolder = authService.getRootFolder()
+      
+      console.log('🔍 FolderTree.createNewNote debug:', {
+        user,
+        rootFolder,
+        currentFolder: props.currentFolder,
+        currentFolderId: props.currentFolder?._id
+      })
+      
+      if (!user) {
+        console.error('❌ No user found')
+        alert('Error: No user found. Please log in again.')
+        return
+      }
+      
+      if (!rootFolder) {
+        console.error('❌ No root folder found')
+        alert('Error: No root folder found. Please try refreshing the page.')
+        return
+      }
+
+      try {
+        // Create note using Request API with current folder or root folder
+        const folderId = props.currentFolder?._id || rootFolder
+        console.log('📝 Creating note in folder:', folderId, 'type:', typeof folderId)
+        
+        if (!folderId || folderId === 'undefined') {
+          throw new Error('Invalid folder ID: ' + folderId)
+        }
+        
+        const response = await requestAPI.createNote(user, 'Start writing your note...', folderId, 'Untitled Note')
+        console.log('✅ Note created:', response)
+        
+        if (response.note) {
+          // Create temporary note object with real ID from API response
+          const tempNote = {
+            _id: response.note,  // Real ID from API response
+            title: 'Untitled Note',
+            content: 'Start writing your note...',
+            folderId: folderId,
+            date_created: new Date().toISOString(),
+            last_modified: new Date().toISOString()
+          }
+          emit('note-selected', tempNote)
+          // Also emit note-created event so Dashboard can refresh the notes list
+          emit('note-created', response)
+        }
+      } catch (error) {
+        console.error('❌ Error creating note:', error)
+        alert('Error creating note: ' + (error.error || 'Unknown error'))
+      }
     }
 
     const deleteFolder = async (folder) => {

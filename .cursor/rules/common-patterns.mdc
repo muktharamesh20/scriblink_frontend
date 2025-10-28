@@ -1,0 +1,101 @@
+---
+description: Specific patterns and solutions for common ScribLink development issues
+---
+
+# ScribLink Development Patterns
+
+## Note Creation Issues
+**Problem**: "Note with ID new not found" error when creating notes from different locations.
+
+**Solution Pattern**:
+```javascript
+// Always use the same mechanism for note creation
+const response = await requestAPI.createNote(user, content, folderId, title)
+if (response.note) {
+  await refreshNotes()
+  const newNote = notes.value.find(note => note._id === response.note)
+  if (newNote) {
+    selectNote(newNote)
+  }
+}
+```
+
+## Layout Issues
+**Problem**: Components not spanning full width/height of viewport.
+
+**Solution Pattern**:
+```css
+.full-width-component {
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.full-height-component {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+```
+
+## Color Scheme Consistency
+**Problem**: Inconsistent colors across components.
+
+**Solution Pattern**:
+- **Light Mode**: `--bg-primary` (white), `--bg-secondary` (warm beige-gray)
+- **Dark Mode**: `--bg-primary` (dark), `--bg-secondary` (lighter dark)
+- **Content Areas**: Use `--bg-primary` for main content
+- **Headers/Footers**: Use `--bg-secondary` for navigation elements
+
+## Event Handling Patterns
+**Problem**: Inconsistent event emission and handling.
+
+**Solution Pattern**:
+```javascript
+// Emit events with data
+emit('note-created', response)
+
+// Handle events with data
+const handleNoteCreated = async (response) => {
+  await refreshNotes()
+  if (response && response.note) {
+    const newNote = notes.value.find(note => note._id === response.note)
+    if (newNote) selectNote(newNote)
+  }
+}
+```
+
+## Folder Navigation Issues
+**Problem**: Folder click behavior inconsistencies.
+
+**Solution Pattern**:
+- **Folder Expansion**: Only expand/collapse, don't create sidebars
+- **Note Selection**: Separate click handlers for folders vs notes
+- **Event Separation**: Use different events for folder vs note actions
+
+## Panel Positioning Issues
+**Problem**: Summary/Tags panels appearing in wrong locations.
+
+**Solution Pattern**:
+```css
+.panel {
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  z-index: 99;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+```
+
+## Theme Management
+**Problem**: Theme switching and persistence issues.
+
+**Solution Pattern**:
+- **Local Storage**: Persist theme preference
+- **CSS Variables**: Use CSS custom properties for theming
+- **Reactive Updates**: Update theme class on root element
+- **Consistent Variables**: Always use theme variables, never hardcoded colors

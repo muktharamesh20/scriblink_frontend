@@ -1,0 +1,94 @@
+---
+globs: *.vue,*.js
+description: Debugging and troubleshooting guidelines for ScribLink development
+---
+
+# Debugging & Troubleshooting Guide
+
+## Common Error Patterns
+
+### "Note with ID new not found"
+**Cause**: Note creation without proper selection mechanism
+**Solution**: Always use `response.note` ID to find and select newly created notes
+
+### Layout Issues
+**Cause**: Components not breaking out of parent containers
+**Solution**: Use `width: 100vw`, `height: 100vh`, `position: fixed` for full viewport coverage
+
+### Color Inconsistencies
+**Cause**: Hardcoded colors instead of CSS variables
+**Solution**: Always use `var(--bg-primary)`, `var(--text-primary)`, etc.
+
+### Event Handling Issues
+**Cause**: Inconsistent event emission patterns
+**Solution**: Always emit events with relevant data, handle consistently
+
+## Debugging Techniques
+
+### Console Logging Patterns
+```javascript
+// Use descriptive emoji prefixes
+console.log('🔍 Debug info:', data)
+console.log('✅ Success:', result)
+console.error('❌ Error:', error)
+console.warn('⚠️ Warning:', warning)
+```
+
+### API Response Debugging
+```javascript
+// Always log API responses
+const response = await requestAPI.createNote(user, content, folderId, title)
+console.log('📝 API Response:', response)
+```
+
+### State Debugging
+```javascript
+// Log component state changes
+console.log('🔄 State change:', {
+  oldValue: oldValue,
+  newValue: newValue,
+  context: 'ComponentName'
+})
+```
+
+## Testing Patterns
+
+### Component Testing
+- **Props**: Test with different prop combinations
+- **Events**: Verify event emission with correct data
+- **State**: Check reactive state updates
+- **Styling**: Verify CSS variable usage
+
+### API Testing
+- **Success Cases**: Test with valid data
+- **Error Cases**: Test with invalid data
+- **Edge Cases**: Test with empty/null values
+- **Network Issues**: Test offline scenarios
+
+## Performance Considerations
+
+### Vue.js Performance
+- **Reactive Updates**: Minimize unnecessary re-renders
+- **Computed Properties**: Use computed for derived state
+- **Watchers**: Use appropriate watch options
+- **Component Splitting**: Split large components
+
+### API Performance
+- **Caching**: Cache frequently accessed data
+- **Debouncing**: Debounce user input
+- **Loading States**: Show loading indicators
+- **Error Recovery**: Handle network failures gracefully
+
+## Code Quality
+
+### Vue.js Best Practices
+- **Composition API**: Use Composition API consistently
+- **Props Validation**: Define prop types and validation
+- **Event Documentation**: Document emitted events
+- **Scoped Styles**: Use scoped styles for components
+
+### JavaScript Best Practices
+- **Async/Await**: Use async/await instead of promises
+- **Error Handling**: Always handle errors gracefully
+- **Type Safety**: Use consistent data structures
+- **Code Organization**: Keep related functionality together

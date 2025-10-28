@@ -160,11 +160,19 @@ export default {
       const user = authService.getUser()
       if (!user) return
 
+      console.log('🔍 updateTitle debug:', {
+        noteId: props.note._id,
+        noteTitle: noteTitle.value,
+        originalTitle: props.note.title,
+        noteObject: props.note
+      })
+
       try {
         await notesAPI.setTitle(props.note._id, user, noteTitle.value)
         emit('note-updated')
+        console.log('✅ Title updated successfully')
       } catch (error) {
-        console.error('Error updating title:', error)
+        console.error('❌ Error updating title:', error)
         alert('Error updating title: ' + (error.error || 'Unknown error'))
       }
     }

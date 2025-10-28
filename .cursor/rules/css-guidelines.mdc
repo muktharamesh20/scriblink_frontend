@@ -1,0 +1,43 @@
+---
+globs: *.css,*.vue
+description: CSS and styling guidelines for consistent theming and design
+---
+
+# CSS & Styling Guidelines
+
+## Theme System
+The app uses a **neutral color palette** with CSS variables defined in [style.css](mdc:src/style.css):
+
+### Color Variables
+- **Backgrounds**: `--bg-primary` (white), `--bg-secondary` (warm beige-gray)
+- **Text**: `--text-primary` (dark), `--text-secondary` (medium gray)
+- **Borders**: `--border-primary` (light gray), `--border-accent` (dark)
+- **Accents**: `--accent-primary` (neutral), avoid bright colors
+
+### Theme Modes
+- **Light Mode**: Warm neutral palette (default)
+- **Dark Mode**: Dark neutral palette with `[data-theme="dark"]`
+
+## Layout Patterns
+- **Full-Width Components**: Use `width: 100vw` and `margin: 0` for full viewport width
+- **Full-Height Components**: Use `height: 100vh` for full viewport height
+- **Flexbox Layouts**: Use `display: flex` with `gap` for spacing
+- **Grid Layouts**: Use `display: grid` for complex layouts
+- **Box Sizing**: Always use `box-sizing: border-box`
+
+## Component Styling
+- **Consistent Padding**: Use `1rem`, `1.5rem`, `2rem` for spacing
+- **Border Radius**: Use `8px`, `12px` for rounded corners
+- **Shadows**: Use `--shadow-sm`, `--shadow-md`, `--shadow-lg`
+- **Transitions**: Use `--transition-fast`, `--transition-normal`
+
+## Responsive Design
+- **Mobile First**: Design for mobile, enhance for desktop
+- **Flexible Units**: Use `rem`, `em`, `%` instead of fixed pixels
+- **Container Queries**: Use `max-width` for content containers
+
+## Color Usage Rules
+- **No Bright Colors**: Avoid reds, blues, teals - use neutral grays/browns
+- **Consistent Theming**: Always use CSS variables, never hardcoded colors
+- **Accessibility**: Ensure sufficient contrast ratios
+- **Hover States**: Use `--bg-hover` for interactive elements

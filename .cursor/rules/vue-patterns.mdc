@@ -1,0 +1,61 @@
+---
+globs: *.vue
+description: Vue.js component development patterns and best practices
+---
+
+# Vue.js Component Guidelines
+
+## Component Structure
+Always follow this template structure:
+```vue
+<template>
+  <!-- Template content -->
+</template>
+
+<script>
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+// Other imports
+
+export default {
+  name: 'ComponentName',
+  props: {
+    // Props definition
+  },
+  emits: ['event-name'],
+  setup(props, { emit }) {
+    // Composition API setup
+    return {
+      // Return reactive refs and methods
+    }
+  }
+}
+</script>
+
+<style scoped>
+/* Component-specific styles */
+</style>
+```
+
+## Composition API Patterns
+- **Always use Composition API** with `<script setup>` or `setup()` function
+- **Reactive State**: Use `ref()` for primitives, `reactive()` for objects
+- **Computed Properties**: Use `computed()` for derived state
+- **Lifecycle**: Use `onMounted()`, `onUnmounted()`, etc.
+- **Watchers**: Use `watch()` or `watchEffect()` for side effects
+
+## Event Handling
+- **Props Down, Events Up**: Pass data via props, emit events for parent communication
+- **Event Names**: Use kebab-case for event names (`@note-created`)
+- **Event Data**: Always pass relevant data with events
+
+## Styling Guidelines
+- **Scoped Styles**: Always use `<style scoped>` for component styles
+- **CSS Variables**: Use theme variables from [style.css](mdc:src/style.css)
+- **Responsive Design**: Use flexbox/grid for layouts
+- **Transitions**: Use CSS variables for consistent transitions
+
+## Common Patterns
+- **Loading States**: Use reactive loading flags
+- **Error Handling**: Always wrap async operations in try-catch
+- **Console Logging**: Use descriptive emoji prefixes for debugging
+- **API Calls**: Use services from [apiServices.js](mdc:src/services/apiServices.js)
