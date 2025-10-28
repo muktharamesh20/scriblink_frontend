@@ -156,11 +156,11 @@ export default {
           initialContentLength.value = props.note.content.length
           emit('summary-updated')
         } else if (response.error) {
-          error.value = response.error
+          error.value = 'Cannot generate high quality summary. Please try again or write your own'
         }
       } catch (err) {
         console.error('Error generating summary:', err)
-        error.value = err.error || 'Failed to generate summary'
+        error.value = 'Cannot generate high quality summary. Please try again or write your own'
       } finally {
         generating.value = false
       }
