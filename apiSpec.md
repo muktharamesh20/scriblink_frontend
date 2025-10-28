@@ -1325,6 +1325,60 @@
 
 ---
 
+### POST /api/Request/searchNotes
+
+**Description:** Searches through all notes and summaries for a specific user.
+
+**Requirements:**
+- User must be authenticated
+- Search query must be provided
+
+**Effects:**
+- Returns notes that match the search query in title, content, or summary
+- Supports partial text matching (case-insensitive)
+
+**Request Body:**
+```json
+{
+  "user": "string",
+  "query": "string",
+  "limit": "number (optional, default: 50)"
+}
+```
+
+**Success Response Body (Action):**
+```json
+{
+  "results": [
+    {
+      "note": {
+        "_id": "string",
+        "title": "string",
+        "content": "string",
+        "owner": "string",
+        "date_created": "string (ISO 8601)",
+        "last_modified": "string (ISO 8601)",
+        "folderId": "string"
+      },
+      "matchType": "string (title|content|summary)",
+      "summary": "string (if matchType is summary)",
+      "relevanceScore": "number (0-1)"
+    }
+  ],
+  "totalResults": "number",
+  "query": "string"
+}
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
+---
+
 ### POST /api/Request/getFolderStructure
 
 **Description:** Gets the folder structure for a user.

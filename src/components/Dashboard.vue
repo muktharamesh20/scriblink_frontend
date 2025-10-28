@@ -4,7 +4,12 @@
       <div class="welcome-container">
         <div class="welcome-content">
           <h2>Welcome to Scriblink</h2>
-          <p>Create a note or folder to get started!</p>
+          
+          <!-- Search Bar -->
+          <div class="search-section">
+            <SearchBar @note-selected="selectNote" />
+          </div>
+          
           <div class="welcome-actions">
             <button @click="createNewNote" class="btn btn-primary">
               Create Note
@@ -70,9 +75,6 @@
       <div class="tags-overview-content">
         <div class="tags-overview-header">
           <h3>Tags Overview</h3>
-          <button @click="refreshTagsOverview" class="btn btn-sm btn-secondary">
-            Refresh
-          </button>
         </div>
         <div class="tags-grid">
         <div v-for="tagGroup in sortedTagsOverview" :key="tagGroup.tag" class="tag-group">
@@ -109,13 +111,15 @@ import { requestAPI } from '../services/apiServices.js'
 import FolderTree from './FolderTree.vue'
 import FolderView from './FolderView.vue'
 import NoteEditor from './NoteEditor.vue'
+import SearchBar from './SearchBar.vue'
 
 export default {
   name: 'Dashboard',
   components: {
     FolderTree,
     FolderView,
-    NoteEditor
+    NoteEditor,
+    SearchBar
   },
   setup() {
     const folders = ref([])
@@ -282,10 +286,6 @@ export default {
       }
     }
 
-    // Refresh tags overview
-    const refreshTagsOverview = async () => {
-      await loadTagsOverview()
-    }
 
     // Helper function to format relative time
     const formatRelativeTime = (dateString) => {
@@ -683,7 +683,6 @@ export default {
       handleFolderMoved,
       handleNoteMoved,
       sortedTagsOverview,
-      refreshTagsOverview,
       formatRelativeTime,
       getFolderName
     }
@@ -855,17 +854,18 @@ export default {
 }
 
 .welcome-content h2 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 2rem 0;
   color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 700;
 }
 
-.welcome-content p {
-  margin: 0 0 2rem 0;
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  line-height: 1.5;
+.search-section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 2rem auto;
 }
 
 .welcome-actions {
@@ -874,8 +874,6 @@ export default {
   justify-content: center;
   flex-wrap: wrap;
 }
-
-
 
 .btn span {
   margin-right: 0.5rem;
