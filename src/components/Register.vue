@@ -186,23 +186,22 @@ export default {
   margin: 0 auto 1rem auto;
   display: block;
   background: transparent;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   transition: all var(--transition-fast);
 }
 
 /* Dark mode logo styling - make it white with transparent background */
 [data-theme="dark"] .logo-image {
-  filter: brightness(0) invert(1) drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
+  filter: brightness(0) invert(1);
 }
 
 .logo-image:hover {
   transform: scale(1.05);
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 /* Dark mode hover effect */
 [data-theme="dark"] .logo-image:hover {
-  filter: brightness(0) invert(1) drop-shadow(0 6px 12px rgba(255, 255, 255, 0.4));
+  filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(255, 255, 255, 0.2));
 }
 
 .auth-header p {
