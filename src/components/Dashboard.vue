@@ -93,7 +93,7 @@
               <div class="note-title">{{ note.title }}</div>
               <div class="note-meta">
                 <span class="note-date">{{ formatRelativeTime(note.last_modified) }}</span>
-                <span v-if="note.folderId" class="note-folder">{{ getFolderName(note.folderId) }}</span>
+                <span v-if="note.folderId && note.folderId !== rootFolderId" class="note-folder">{{ getFolderName(note.folderId) }}</span>
               </div>
             </div>
           </div>
@@ -187,6 +187,11 @@ export default {
 
     // Tags overview data
     const tagsOverview = ref([])
+
+    // Computed property for root folder ID
+    const rootFolderId = computed(() => {
+      return authService.getRootFolder()
+    })
 
     // Computed property for sorted tags overview
     const sortedTagsOverview = computed(() => {
@@ -683,6 +688,7 @@ export default {
       handleFolderMoved,
       handleNoteMoved,
       sortedTagsOverview,
+      rootFolderId,
       formatRelativeTime,
       getFolderName
     }
