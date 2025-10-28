@@ -56,13 +56,42 @@ export default {
       if (!user) return
 
       try {
+        // Use the updated getItemTags endpoint
         const response = await requestAPI.getItemTags(user, props.note._id)
-        if (response.tags) {
+        console.log('🔍 [TagsPanel] getItemTags response:', response)
+        
+        // Handle both old format {tags: [...]} and new format [...]
+        let tagsArray = []
+        if (response && Array.isArray(response)) {
+          // New format: direct array of tag objects
+          tagsArray = response
+        } else if (response && response.tags && Array.isArray(response.tags)) {
+          // Old format: {tags: [...]}
+          tagsArray = response.tags
+        }
+        
+        if (tagsArray.length > 0) {
           // Store tag objects with both label and id
-          activeTags.value = response.tags.map(tag => ({
-            label: tag.label || tag,
-            id: tag._id || tag.id || tag
-          }))
+          activeTags.value = tagsArray.map(tag => {
+            console.log('🔍 [TagsPanel] Processing tag:', tag, 'type:', typeof tag)
+            
+            // Handle both string tags and object tags
+            if (typeof tag === 'string') {
+              console.log('🔍 [TagsPanel] String tag detected:', tag)
+              return {
+                label: tag,
+                id: tag // For string tags, use the label as ID
+              }
+            } else {
+              console.log('🔍 [TagsPanel] Object tag detected:', tag)
+              return {
+                label: tag.label,
+                id: tag.tagId || tag._id || tag.id || tag.label || tag
+              }
+            }
+          })
+          
+          console.log('🔍 [TagsPanel] Final activeTags:', activeTags.value)
         }
       } catch (err) {
         console.error('Error loading tags:', err)
@@ -86,9 +115,9 @@ export default {
           // Remove tag - find the tag object to get the ID
           const tagToRemove = activeTags.value.find(tag => tag.label === tagValue)
           if (tagToRemove) {
-            // Use tag ID if available, otherwise use the label
-            const tagIdentifier = tagToRemove.id || tagToRemove.label
-            console.log('🗑️ Removing tag with identifier:', tagIdentifier)
+            const tagIdentifier = tagToRemove.id
+            console.log('🗑️ Removing tag with ID:', tagIdentifier)
+            console.log('🔍 Tag to remove object:', tagToRemove)
             await requestAPI.untagItem(user, props.note._id, tagIdentifier)
             activeTags.value = activeTags.value.filter(tag => tag.label !== tagValue)
           }

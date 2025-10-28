@@ -723,7 +723,6 @@
 
 ---
 
-
 # API Specification: Tags Concept
 
 **Purpose:** Flags items for later
@@ -841,7 +840,7 @@
 - `user` and `item` must be valid IDs.
 
 **Effects:**
-- Returns an array of `TagStructure` objects containing the `item` for the `user`.
+- Returns an array of objects containing tag ID and label for the `item` belonging to the `user`.
 
 **Request Body:**
 ```json
@@ -855,12 +854,8 @@
 ```json
 [
   {
-    "_id": "string",
-    "owner": "string",
-    "label": "string",
-    "items": [
-      "string"
-    ]
+    "tagId": "string",
+    "label": "string"
   }
 ]
 ```
@@ -1245,6 +1240,42 @@
   "error": "string"
 }
 ```
+### POST /api/Request/getItemTags
+
+**Description:** Gets all tags for a specific item.
+
+**Requirements:**
+- Not explicitly specified in the concept specification for this action.
+
+**Effects:**
+- Returns an array of tag objects containing tagId and label for the specified item belonging to the user
+- Uses the same format as `tags._getTagsForItem`
+
+**Request Body:**
+```json
+{
+  "user": "string",
+  "itemId": "string"
+}
+```
+
+**Success Response Body (Action):**
+```json
+[
+  {
+    "tagId": "string",
+    "label": "string"
+  }
+]
+```
+
+**Error Response Body:**
+```json
+{
+  "error": "string"
+}
+```
+
 
 ---
 
