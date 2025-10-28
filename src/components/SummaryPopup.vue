@@ -18,15 +18,34 @@
         </div>
         
         <div v-else-if="!summary" class="no-summary-state">
-          <div class="no-summary-icon">✨</div>
-          <p>No summary available for this note.</p>
-          <div class="no-summary-actions">
-            <button @click="generateSummary" class="btn btn-primary btn-sm" :disabled="generating">
-              {{ generating ? 'Generating...' : 'Generate Summary' }}
-            </button>
-            <button @click="createOwnSummary" class="btn btn-secondary btn-sm">
-              Create Your Own
-            </button>
+          <div v-if="!isEditing">
+            <div class="no-summary-icon">✨</div>
+            <p>No summary available for this note.</p>
+            <div class="no-summary-actions">
+              <button @click="generateSummary" class="btn btn-primary btn-sm" :disabled="generating">
+                {{ generating ? 'Generating...' : 'Generate Summary' }}
+              </button>
+              <button @click="createOwnSummary" class="btn btn-secondary btn-sm">
+                Create Your Own
+              </button>
+            </div>
+          </div>
+          
+          <div v-else class="summary-edit">
+            <div class="summary-actions">
+              <button @click="saveSummary" class="btn btn-primary btn-sm" :disabled="saving">
+                {{ saving ? 'Saving...' : 'Save' }}
+              </button>
+              <button @click="cancelEditing" class="btn btn-secondary btn-sm">
+                Cancel
+              </button>
+            </div>
+            <textarea 
+              v-model="editingSummary" 
+              class="summary-textarea"
+              placeholder="Enter summary..."
+              rows="8"
+            ></textarea>
           </div>
         </div>
         
