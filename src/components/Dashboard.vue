@@ -1,24 +1,22 @@
 <template>
   <div class="dashboard">
-    <div class="dashboard-content">
-      <div v-if="!selectedNote" class="welcome-section">
-        <div class="welcome">
-          <div class="welcome-content">
-            <h2>Welcome to ScribLink</h2>
-            <p>Create your first note or folder to get started!</p>
-            <div class="welcome-actions">
-              <button @click="createNewNote" class="btn btn-primary">
-                Create Note
-              </button>
-              <button @click="createNewFolder" class="btn btn-secondary">
-                Create Folder
-              </button>
-            </div>
+    <div v-if="!selectedNote" class="dashboard-content">
+      <div class="welcome-container">
+        <div class="welcome-content">
+          <h2>Welcome to ScribLink</h2>
+          <p>Create your first note or folder to get started!</p>
+          <div class="welcome-actions">
+            <button @click="createNewNote" class="btn btn-primary">
+              Create Note
+            </button>
+            <button @click="createNewFolder" class="btn btn-secondary">
+              Create Folder
+            </button>
           </div>
         </div>
       </div>
 
-      <div v-if="!selectedNote" class="sidebar">
+      <div class="sidebar">
         <FolderTree 
           :folders="folders"
           :current-folder="currentFolder"
@@ -38,34 +36,35 @@
           @folder-drag-leave="handleFolderDragLeave"
         />
       </div>
+    </div>
 
-      <!-- Note editor takes full page when a note is selected -->
-      <div v-if="selectedNote" class="note-editor-fullscreen">
-        <NoteEditor 
-          :note="selectedNote"
-          @note-updated="refreshNotes"
-          @note-deleted="handleNoteDeleted"
-          @exit-editor="exitNoteEditor"
+    <!-- Note editor takes full page when a note is selected -->
+    <div v-if="selectedNote" class="note-editor-fullscreen">
+      <NoteEditor 
+        :note="selectedNote"
+        @note-updated="refreshNotes"
+        @note-deleted="handleNoteDeleted"
+        @exit-editor="exitNoteEditor"
+      />
+    </div>
+
+    <!-- Folder view when in a folder but no note selected -->
+    <div v-else-if="currentFolder" class="main-content">
+      <div class="folder-view">
+        <div class="folder-header">
+          <button @click="goBackToRoot" class="back-button">← Back to Root</button>
+        </div>
+        <FolderView 
+          :folder="currentFolder"
+          :notes="currentFolderNotes"
+          @note-selected="selectNote"
+          @note-created="refreshNotes"
+          @note-deleted="refreshNotes"
+          @note-moved="handleNoteMoved"
         />
       </div>
-
-      <!-- Folder view when in a folder but no note selected -->
-      <div v-else-if="currentFolder" class="main-content">
-        <div class="folder-view">
-          <div class="folder-header">
-            <button @click="goBackToRoot" class="back-button">← Back to Root</button>
-          </div>
-          <FolderView 
-            :folder="currentFolder"
-            :notes="currentFolderNotes"
-            @note-selected="selectNote"
-            @note-created="refreshNotes"
-            @note-deleted="refreshNotes"
-            @note-moved="handleNoteMoved"
-          />
-        </div>
-      </div>
     </div>
+
     <div v-if="!selectedNote" class="tags-overview">
       <div class="tags-overview-content">
         <div class="tags-overview-header">
@@ -96,7 +95,7 @@
             </div>
           </div>
         </div>
-      </div>
+        </div>
       </div>
     </div>
   </div>
@@ -318,6 +317,7 @@ export default {
         await refreshFolders()
         await refreshNotes()
         await loadAllNotes()
+        await loadTagsOverview()
       } catch (error) {
         console.error('Error initializing user:', error)
       }
@@ -592,7 +592,6 @@ export default {
 
     onMounted(() => {
       initializeUser()
-      loadTagsOverview()
     })
 
     return {
@@ -632,7 +631,6 @@ export default {
 
 <style scoped>
 .dashboard {
-  min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
 }
@@ -659,11 +657,10 @@ export default {
 
 .dashboard-content {
   display: flex;
-  gap: 1rem;
-  min-height: 500px;
+  align-items: flex-start;
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  gap: 2rem;
 }
 
 .note-editor-fullscreen {
@@ -680,8 +677,6 @@ export default {
 
 .sidebar {
   width: 300px;
-  min-height: 500px;
-  max-height: 70vh;
   background: var(--bg-card);
   border-radius: 12px;
   padding: 1rem;
@@ -689,6 +684,8 @@ export default {
   border: 1px solid var(--border-primary);
   overflow-y: auto;
   transition: all var(--transition-normal);
+  min-height: 300px;
+  max-height: 50vh;
 }
 
 .sidebar:hover {
@@ -712,12 +709,37 @@ export default {
   box-shadow: var(--shadow-lg);
 }
 
-.welcome-section {
+.welcome-container {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  min-height: 500px;
-  max-height: 70vh;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.welcome-content {
+  text-align: center;
+}
+
+.welcome-content h2 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.welcome-content p {
+  margin: 0 0 2rem 0;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .main-content {
@@ -765,45 +787,28 @@ export default {
   box-shadow: var(--shadow-lg);
 }
 
-.welcome {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-  border: none;
-  transition: all var(--transition-normal);
-}
-
-.welcome:hover {
-  box-shadow: none;
-}
-
-.welcome-content {
-  text-align: center;
-  max-width: 400px;
-}
-
 .welcome-content h2 {
+  margin: 0 0 1rem 0;
   color: var(--text-primary);
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 2.5rem;
+  font-weight: 700;
 }
 
 .welcome-content p {
+  margin: 0 0 2rem 0;
   color: var(--text-secondary);
-  margin-bottom: 2rem;
   font-size: 1.1rem;
+  line-height: 1.5;
 }
 
 .welcome-actions {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
+
+
 
 .btn span {
   margin-right: 0.5rem;
@@ -899,7 +904,7 @@ export default {
 .tags-overview-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .tags-overview-header {
