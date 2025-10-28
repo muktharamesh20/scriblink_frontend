@@ -5,12 +5,13 @@
         <img src="/scriblink.png" alt="ScribLink" class="logo-image" />
       </div>
       <div class="nav-actions">
+        <span class="user-info">Welcome, {{ currentUser }}</span>
         <button @click="cycleTheme" class="theme-toggle" :title="getThemeTitle()">
+          <span class="theme-label">{{ getThemeTitle() }}</span>
           <div class="theme-icon">
             <div class="theme-circle" :class="getThemeClass()"></div>
           </div>
         </button>
-        <span class="user-info">Welcome, {{ currentUser }}</span>
         <button @click="logout" class="logout-btn">Logout</button>
       </div>
     </nav>
@@ -58,13 +59,8 @@ export default {
     }
     
     const getThemeTitle = () => {
-      const themeNames = {
-        'light': 'Light Mode',
-        'dark': 'Dark Mode'
-      }
       const currentTheme = themes[currentThemeIndex.value]
-      const nextTheme = themes[(currentThemeIndex.value + 1) % themes.length]
-      return `Current: ${themeNames[currentTheme]} - Click for ${themeNames[nextTheme]}`
+      return currentTheme === 'light' ? 'Light' : 'Dark'
     }
     
     const getThemeClass = () => {
@@ -183,18 +179,23 @@ body {
   gap: 1rem;
 }
 
+.theme-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-family: var(--font-primary);
+}
+
 .theme-toggle {
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: 8px;
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
+  gap: 0.5rem;
 }
 
 .theme-toggle:hover {
@@ -234,28 +235,6 @@ body {
 .theme-circle.dark-mode {
   background: var(--accent-primary);
   box-shadow: inset 0 0 0 2px var(--bg-primary);
-}
-
-.theme-circle::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--bg-primary);
-  transition: all var(--transition-fast);
-}
-
-.theme-circle.light-mode::before {
-  background: var(--text-primary);
-  transform: scale(0.3);
-}
-
-.theme-circle.dark-mode::before {
-  background: var(--text-primary);
-  transform: scale(0.3);
 }
 
 .user-info {

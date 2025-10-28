@@ -376,37 +376,37 @@ export default {
   gap: 1rem;
 }
 
-/* Colorful spinner matching logo aesthetic */
+/* Neutral spinner matching app aesthetic */
 .colorful-spinner {
   width: 40px;
   height: 40px;
   border: 4px solid transparent;
-  border-top: 4px solid #ff6b6b; /* Coral red */
-  border-right: 4px solid #4ecdc4; /* Teal */
-  border-bottom: 4px solid #45b7d1; /* Sky blue */
-  border-left: 4px solid #96ceb4; /* Mint green */
+  border-top: 4px solid var(--accent-primary);
+  border-right: 4px solid var(--accent-secondary);
+  border-bottom: 4px solid var(--text-secondary);
+  border-left: 4px solid var(--text-muted);
   border-radius: 50%;
-  animation: colorful-spin 1.2s linear infinite;
-  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+  animation: neutral-spin 1.2s linear infinite;
+  box-shadow: 0 0 20px rgba(184, 179, 172, 0.2);
 }
 
-@keyframes colorful-spin {
+@keyframes neutral-spin {
   0% { 
     transform: rotate(0deg);
-    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 0 20px rgba(184, 179, 172, 0.2);
   }
   25% { 
-    box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+    box-shadow: 0 0 20px rgba(153, 153, 153, 0.2);
   }
   50% { 
-    box-shadow: 0 0 20px rgba(69, 183, 209, 0.3);
+    box-shadow: 0 0 20px rgba(108, 108, 108, 0.2);
   }
   75% { 
-    box-shadow: 0 0 20px rgba(150, 206, 180, 0.3);
+    box-shadow: 0 0 20px rgba(153, 153, 153, 0.2);
   }
   100% { 
     transform: rotate(360deg);
-    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 0 20px rgba(184, 179, 172, 0.2);
   }
 }
 

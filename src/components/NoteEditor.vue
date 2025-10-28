@@ -422,6 +422,7 @@ export default {
   width: 100%;
   font-size: 1.5rem;
   font-weight: 600;
+  font-family: var(--font-primary);
   color: var(--text-primary);
   border: none;
   background: none;
