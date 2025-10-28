@@ -3,10 +3,10 @@
 /* CSS Variables for consistent theming */
 :root {
   /* Light Mode - Warm Neutral */
-  --bg-primary: #F4F2EE; /* Background - warm beige-gray */
-  --bg-secondary: #FFFFFF; /* Surface/Card - white */
+  --bg-primary: #FFFFFF; /* Background - pure white (lighter) */
+  --bg-secondary: #F4F2EE; /* Surface/Card - warm beige-gray (current background) */
   --bg-tertiary: #EFEAE5; /* Highlight/Hover BG */
-  --bg-card: #FFFFFF; /* Card background */
+  --bg-card: #F4F2EE; /* Card background - warm beige-gray */
   --bg-hover: #EFEAE5; /* Hover background */
 
   /* Text Colors */

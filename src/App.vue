@@ -140,7 +140,7 @@ body {
 }
 
 .navbar {
-  background: var(--bg-card);
+  background: var(--bg-primary);
   color: var(--text-primary);
   padding: 1rem 2rem;
   display: flex;
@@ -282,7 +282,7 @@ body {
 }
 
 .btn {
-  background: var(--bg-card);
+  background: var(--bg-primary);
   color: var(--text-primary);
   border: 1px solid var(--border-primary);
   padding: 0.75rem 1.5rem;
@@ -334,7 +334,7 @@ body {
 }
 
 .btn-secondary {
-  background: var(--bg-card);
+  background: var(--bg-primary);
   color: var(--text-primary);
   border: 1px solid var(--border-primary);
   font-weight: 500;

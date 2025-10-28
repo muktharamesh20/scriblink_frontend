@@ -318,7 +318,7 @@ export default {
 }
 
 .summary-box {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 1rem 1.5rem;
@@ -456,7 +456,7 @@ export default {
   font-size: 1rem;
   line-height: 1.6;
   resize: vertical;
-  background: var(--bg-card); /* Adapts to theme */
+  background: var(--bg-primary); /* White background for flipped colors */
   color: var(--text-primary); /* Adapts to theme */
   transition: all var(--transition-fast); /* Use theme transition */
 }

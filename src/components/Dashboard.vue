@@ -661,6 +661,7 @@ export default {
   padding: 2rem;
   width: 100%;
   gap: 2rem;
+  background: var(--bg-secondary);
 }
 
 .note-editor-fullscreen {
@@ -681,7 +682,7 @@ export default {
 
 .sidebar {
   width: 300px;
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 1rem;
   box-shadow: var(--shadow-md);
@@ -700,7 +701,7 @@ export default {
   width: 300px;
   min-height: 500px;
   max-height: 70vh;
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 1rem;
   box-shadow: var(--shadow-md);
@@ -762,7 +763,7 @@ export default {
 .folder-view {
   flex: 1;
   min-height: 500px;
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 1rem;
   box-shadow: var(--shadow-md);
@@ -778,7 +779,7 @@ export default {
 .note-editor {
   flex: 1;
   min-height: 500px;
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 1rem;
   box-shadow: var(--shadow-md);
@@ -900,7 +901,7 @@ export default {
 /* Tags Overview Styles */
 .tags-overview {
   width: 100%;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border-top: 1px solid var(--border-primary);
   transition: all var(--transition-normal);
 }
@@ -932,7 +933,7 @@ export default {
 }
 
 .tag-group {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border-radius: 8px;
   padding: 1rem;
   box-shadow: var(--shadow-sm);

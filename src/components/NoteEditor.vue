@@ -392,7 +392,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
   position: fixed;
   top: 0;
@@ -469,7 +469,7 @@ export default {
   align-items: center;
   padding: 1rem 0;
   border-top: 1px solid var(--border-primary);
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   position: fixed;
   bottom: 0;
   left: 0;
@@ -514,7 +514,7 @@ export default {
   bottom: 60px; /* Position above the fixed footer */
   left: 0;
   right: 0;
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   border-top: 1px solid var(--border-primary);
   padding: 1rem 2rem;
   z-index: 99;
@@ -525,7 +525,7 @@ export default {
 /* Override SummaryPanel internal styles to ensure full width */
 .note-editor .summary-panel {
   padding: 1rem 2rem !important;
-  background: var(--bg-primary) !important;
+  background: var(--bg-secondary) !important;
   border-radius: 0 !important;
   border: none !important;
   width: 100vw !important;
@@ -550,7 +550,7 @@ export default {
   gap: 1rem;
   margin-bottom: 1rem;
   padding: 0.5rem;
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border-radius: 8px;
   border: 1px solid var(--border-primary);
 }
@@ -569,7 +569,7 @@ export default {
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   overflow: hidden;
-  background-color: var(--bg-card);
+  background-color: var(--bg-primary);
 }
 
 .markdown-preview-only .preview-content {
@@ -602,7 +602,7 @@ export default {
 
 .editor-header-simple,
 .preview-header-small {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--border-primary);
   font-size: 0.9rem;
@@ -629,7 +629,7 @@ export default {
 }
 
 .markdown-help {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border-primary);
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
@@ -670,7 +670,7 @@ export default {
   line-height: 1.5;
   padding: 1rem;
   resize: none;
-  background-color: var(--bg-card);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
@@ -678,7 +678,7 @@ export default {
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
-  background-color: var(--bg-card);
+  background-color: var(--bg-primary);
   font-family: var(--font-secondary);
   line-height: 1.6;
   color: var(--text-primary);
@@ -746,7 +746,7 @@ export default {
   border-left: 4px solid var(--accent-blue);
   margin: 1rem 0;
   padding: 0.5rem 1rem;
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border-radius: 0 4px 4px 0;
   color: var(--text-secondary);
   font-style: italic;
@@ -762,7 +762,7 @@ export default {
 }
 
 .preview-content pre {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-primary);
   border-radius: 6px;
   padding: 1rem;
@@ -781,7 +781,7 @@ export default {
   border-collapse: collapse;
   width: 100%;
   margin: 1rem 0;
-  background-color: var(--bg-card);
+  background-color: var(--bg-primary);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -794,7 +794,7 @@ export default {
 }
 
 .preview-content th {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   font-weight: 600;
 }
@@ -831,11 +831,11 @@ export default {
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   overflow: hidden;
-  background-color: var(--bg-card);
+  background-color: var(--bg-primary);
 }
 
 .editor-header-simple {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--border-primary);
   font-size: 0.9rem;
@@ -855,7 +855,7 @@ export default {
   line-height: 1.5;
   padding: 1rem;
   resize: none;
-  background-color: var(--bg-card);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
