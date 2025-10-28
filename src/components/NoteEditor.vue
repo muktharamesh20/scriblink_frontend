@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <div class="editor-content">
+    <div class="editor-content" :class="{ 'has-panel': showTags || showSummary }">
       <!-- Preview Mode: Beautiful read-only markdown -->
       <div v-if="!isEditing" class="markdown-preview-only">
         <div class="preview-content" v-html="renderedMarkdown"></div>
@@ -329,9 +329,13 @@ export default {
 
 <style scoped>
 .note-editor {
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
+  margin: 0;
+  padding: 0;
+  position: relative;
 }
 
 .editor-header {
@@ -347,18 +351,23 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1rem 0;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-primary);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   box-shadow: var(--shadow-sm);
+  width: 100vw;
+  box-sizing: border-box;
 }
 
 .editor-title {
   flex: 1;
   margin-right: 1rem;
+  padding-left: 2rem;
 }
 
 .title-input {
@@ -380,6 +389,7 @@ export default {
 .editor-actions {
   display: flex;
   gap: 0.5rem;
+  padding-right: 2rem;
 }
 
 .editor-content {
@@ -388,6 +398,14 @@ export default {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  margin-top: 60px; /* Account for fixed header */
+  margin-bottom: 60px; /* Account for fixed footer */
+  transition: margin-top 0.2s ease, margin-bottom 0.2s ease;
+}
+
+/* When panels are open, add extra margin to content */
+.editor-content.has-panel {
+  margin-bottom: 200px; /* Extra space when panel is open at bottom */
 }
 
 .content-textarea {
@@ -409,9 +427,16 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1rem 0;
   border-top: 1px solid var(--border-primary);
   background: var(--bg-primary);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  box-sizing: border-box;
+  z-index: 100;
 }
 
 .note-metadata {
@@ -420,6 +445,7 @@ export default {
   font-size: 0.8rem;
   color: var(--text-primary); /* Improved visibility from text-muted */
   font-weight: 500; /* Added weight for better readability */
+  padding-left: 2rem;
 }
 
 .meta-item {
@@ -429,13 +455,43 @@ export default {
 .editor-tools {
   display: flex;
   gap: 0.5rem;
+  padding-right: 2rem;
 }
 
-.tags-panel,
-.summary-panel {
-  margin-top: 1rem;
-  padding-top: 1rem;
+.editor-tools .btn {
+  border-bottom: none;
+}
+
+.editor-tools .btn:focus,
+.editor-tools .btn:active {
+  border-bottom: none;
+  outline: none;
+}
+
+.note-editor .tags-panel,
+.note-editor .summary-panel {
+  position: fixed;
+  bottom: 60px; /* Position above the fixed footer */
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
   border-top: 1px solid var(--border-primary);
+  padding: 1rem 2rem;
+  z-index: 99;
+  max-height: calc(100vh - 120px); /* Account for header and footer */
+  overflow-y: auto;
+}
+
+/* Override SummaryPanel internal styles to ensure full width */
+.note-editor .summary-panel {
+  padding: 1rem 2rem !important;
+  background: var(--bg-primary) !important;
+  border-radius: 0 !important;
+  border: none !important;
+  width: 100vw !important;
+  left: 0 !important;
+  right: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .btn-sm {

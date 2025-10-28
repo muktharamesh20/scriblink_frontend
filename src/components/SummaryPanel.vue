@@ -34,36 +34,38 @@
             </div>
 
     <div v-else class="summary-content">
-             <!-- View mode -->
-             <div v-if="!isEditing" class="summary-display">
-               <div v-if="summary && summary.trim()" class="summary-text" v-html="renderedSummary"></div>
-        <div v-else class="empty-summary">
-          <p class="empty-message">No summary yet.</p>
-          <button 
-            @click="generateSummary" 
-            class="btn btn-primary btn-sm"
-            :disabled="generating"
-          >
-                    {{ generating ? 'Generating...' : 'Generate AI Summary' }}
-          </button>
+      <div class="summary-box">
+        <!-- View mode -->
+        <div v-if="!isEditing" class="summary-display">
+          <div v-if="summary && summary.trim()" class="summary-text" v-html="renderedSummary"></div>
+          <div v-else class="empty-summary">
+            <p class="empty-message">No summary yet.</p>
+            <button 
+              @click="generateSummary" 
+              class="btn btn-primary btn-sm"
+              :disabled="generating"
+            >
+              {{ generating ? 'Generating...' : 'Generate AI Summary' }}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Edit mode -->
-      <div v-else class="summary-edit">
-        <textarea 
-          v-model="editingSummary"
-          class="summary-textarea"
-          placeholder="Enter a custom summary for this note..."
-          rows="5"
-        ></textarea>
-        <div class="edit-actions">
-          <button @click="saveSummary" class="btn btn-primary btn-sm" :disabled="saving">
-            {{ saving ? 'Saving...' : 'Save' }}
-          </button>
-          <button @click="cancelEditing" class="btn btn-secondary btn-sm">
-            Cancel
-          </button>
+        <!-- Edit mode -->
+        <div v-else class="summary-edit">
+          <textarea 
+            v-model="editingSummary"
+            class="summary-textarea"
+            placeholder="Enter a custom summary for this note..."
+            rows="5"
+          ></textarea>
+          <div class="edit-actions">
+            <button @click="saveSummary" class="btn btn-primary btn-sm" :disabled="saving">
+              {{ saving ? 'Saving...' : 'Save' }}
+            </button>
+            <button @click="cancelEditing" class="btn btn-secondary btn-sm">
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -72,9 +74,6 @@
       {{ error }}
     </div>
 
-    <div v-if="lastGenerated" class="summary-metadata">
-      <small>Last updated: {{ formatDate(lastGenerated) }}</small>
-    </div>
   </div>
 </template>
 
@@ -318,6 +317,16 @@ export default {
   margin-bottom: 1rem;
 }
 
+.summary-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-sm);
+}
+
 .panel-header h3 {
   margin: 0;
   font-size: 1.2rem;
@@ -473,13 +482,6 @@ export default {
   font-size: 0.9rem;
 }
 
-.summary-metadata {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-primary); /* Adapts to theme */
-  color: var(--text-secondary); /* Adapts to theme */
-  font-size: 0.85rem;
-}
 
 /* Button styles */
 .btn {

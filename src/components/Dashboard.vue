@@ -657,7 +657,7 @@ export default {
 
 .dashboard-content {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   padding: 2rem;
   width: 100%;
   gap: 2rem;
@@ -673,6 +673,10 @@ export default {
   z-index: 1000;
   display: flex;
   flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 .sidebar {
