@@ -457,6 +457,9 @@ export default {
         
         // Also refresh sidebar notes
         await loadAllNotes()
+        
+        // Auto-refresh Tags Overview when notes are updated
+        await loadTagsOverview()
       } catch (error) {
         console.error('Error refreshing notes:', error)
       }
@@ -491,11 +494,15 @@ export default {
       selectedNote.value = null
       // Refresh the notes list to remove the deleted note
       await refreshNotes()
+      // Tags Overview will be refreshed by refreshNotes() which calls loadTagsOverview()
     }
 
-    const exitNoteEditor = () => {
+    const exitNoteEditor = async () => {
       // Clear the selected note to return to dashboard
       selectedNote.value = null
+      
+      // Auto-refresh Tags Overview when exiting a note
+      await loadTagsOverview()
     }
 
     const goBackToRoot = async () => {

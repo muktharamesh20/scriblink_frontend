@@ -1306,7 +1306,9 @@
       "_id": "string",
       "owner": "string",
       "title": "string",
-      "content": "string"
+      "content": "string",
+      "date_created": "string (ISO 8601)",
+      "last_modified": "string (ISO 8601)"
       /* Note: Additional aggregated fields like 'folderId', 'tags', 'summary'
          might be included depending on the internal aggregation logic. */
     }
