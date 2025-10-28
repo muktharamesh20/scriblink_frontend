@@ -207,6 +207,55 @@ export const requestAPI = {
 
   deleteFolder: async (folderId, user) => {
     try {
+      // First, get all notes in this folder and its subfolders to delete their summaries
+      const getAllNotesInFolder = async (folderId) => {
+        const notes = []
+        
+        // Get notes directly in this folder
+        try {
+          const folderNotes = await requestAPI.getUserNotes(user, folderId)
+          if (folderNotes.notes) {
+            notes.push(...folderNotes.notes)
+          }
+        } catch (error) {
+          console.log('⚠️ [deleteFolder] Could not get notes for folder:', folderId, error)
+        }
+        
+        // Get folder structure to find subfolders
+        try {
+          const folderStructure = await requestAPI.getFolderStructure(user, folderId)
+          if (folderStructure.folders) {
+            // Recursively get notes from all subfolders
+            for (const subfolder of folderStructure.folders) {
+              const subfolderNotes = await getAllNotesInFolder(subfolder._id)
+              notes.push(...subfolderNotes)
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ [deleteFolder] Could not get subfolders for folder:', folderId, error)
+        }
+        
+        return notes
+      }
+      
+      // Get all notes that will be deleted
+      const notesToDelete = await getAllNotesInFolder(folderId)
+      console.log('🔍 [deleteFolder] Found', notesToDelete.length, 'notes to delete summaries for')
+      
+      // Delete summaries for all notes
+      for (const note of notesToDelete) {
+        try {
+          await api.post('/Request/deleteSummary', {
+            user,
+            itemId: note._id
+          })
+          console.log('✅ [deleteFolder] Summary deleted for note:', note._id)
+        } catch (summaryError) {
+          console.log('⚠️ [deleteFolder] Could not delete summary for note:', note._id, summaryError)
+        }
+      }
+      
+      // Now delete the folder (which will delete all notes and subfolders)
       const response = await api.post('/Request/deleteFolder', {
         folderId,
         user
@@ -310,10 +359,24 @@ export const requestAPI = {
 
   deleteNote: async (noteId, user) => {
     try {
+      // Delete the note
       const response = await api.post('/Request/deleteNote', {
         noteId,
         user
       })
+      
+      // Also delete any associated summary
+      try {
+        await api.post('/Request/deleteSummary', {
+          user,
+          itemId: noteId
+        })
+        console.log('✅ [deleteNote] Summary deleted for note:', noteId)
+      } catch (summaryError) {
+        // Don't fail the note deletion if summary deletion fails
+        console.log('⚠️ [deleteNote] Could not delete summary for note:', noteId, summaryError)
+      }
+      
       return response.data
     } catch (error) {
       throw error.response?.data || error

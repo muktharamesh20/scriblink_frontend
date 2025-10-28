@@ -129,9 +129,15 @@ export default {
             user: response.user,
             rootFolder: response.rootFolder
           }, form.username)
-          success.value = 'Account created successfully! Redirecting to login...'
+          
+          console.log('✅ Registration successful - User:', response.user, 'Root Folder:', response.rootFolder)
+          success.value = 'Account created successfully! Redirecting to dashboard...'
+          
+          // Dispatch auth-changed event to update navbar
+          window.dispatchEvent(new Event('auth-changed'))
+          
           setTimeout(() => {
-            router.push('/login')
+            router.push('/dashboard')
           }, 2000)
         } else {
           error.value = 'Registration failed'

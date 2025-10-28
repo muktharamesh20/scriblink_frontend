@@ -77,34 +77,47 @@
           <h3>Tags Overview</h3>
         </div>
         <div class="tags-grid">
-        <div v-for="tagGroup in sortedTagsOverview" :key="tagGroup.tag" class="tag-group">
-          <div class="tag-header">
-            <span class="tag-name">{{ tagGroup.tag }}</span>
-            <span class="tag-count">{{ tagGroup.notes.length }} notes</span>
-          </div>
-          <div class="tag-notes">
-            <div 
-              v-for="note in tagGroup.notes" 
-              :key="note._id" 
-              class="tag-note-item"
-              @click="selectNote(note)"
-              :class="{ 'selected': selectedNote && selectedNote._id === note._id }"
-            >
-              <div class="note-title">{{ note.title }}</div>
-              <div class="note-meta">
-                <span class="note-date">{{ formatRelativeTime(note.last_modified) }}</span>
-                <span v-if="note.folderId && note.folderId !== rootFolderId" class="note-folder">{{ getFolderName(note.folderId) }}</span>
+          <div v-if="sortedTagsOverview.length === 0" class="tags-empty-state">
+            <div class="empty-state-content">
+              <div class="empty-state-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor" opacity="0.3"/>
+                  <path d="M7 13L8.09 15.26L10.5 16L8.09 16.74L7 19L5.91 16.74L3.5 16L5.91 15.26L7 13Z" fill="currentColor" opacity="0.2"/>
+                  <path d="M17 13L18.09 15.26L20.5 16L18.09 16.74L17 19L15.91 16.74L13.5 16L15.91 15.26L17 13Z" fill="currentColor" opacity="0.2"/>
+                </svg>
               </div>
-              <button 
-                @click.stop="removeTagFromNote(tagGroup.tag, note)"
-                class="btn-remove-tag"
-                title="Remove tag from note"
-              >
-                ×
-              </button>
+              <h4>No Tags Selected</h4>
+              <p>Add a tag if you want to come back to some note</p>
             </div>
           </div>
-        </div>
+          <div v-for="tagGroup in sortedTagsOverview" :key="tagGroup.tag" class="tag-group">
+            <div class="tag-header">
+              <span class="tag-name">{{ tagGroup.tag }}</span>
+              <span class="tag-count">{{ tagGroup.notes.length }} notes</span>
+            </div>
+            <div class="tag-notes">
+              <div 
+                v-for="note in tagGroup.notes" 
+                :key="note._id" 
+                class="tag-note-item"
+                @click="selectNote(note)"
+                :class="{ 'selected': selectedNote && selectedNote._id === note._id }"
+              >
+                <div class="note-title">{{ note.title }}</div>
+                <div class="note-meta">
+                  <span class="note-date">{{ formatRelativeTime(note.last_modified) }}</span>
+                  <span v-if="note.folderId && note.folderId !== rootFolderId" class="note-folder">{{ getFolderName(note.folderId) }}</span>
+                </div>
+                <button 
+                  @click.stop="removeTagFromNote(tagGroup.tag, note)"
+                  class="btn-remove-tag"
+                  title="Remove tag from note"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1168,6 +1181,48 @@ export default {
   font-size: 0.75rem;
 }
 
+/* Tags Empty State */
+.tags-empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+}
+
+.empty-state-content {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state-icon {
+  margin-bottom: 1.5rem;
+  color: var(--accent-blue);
+  opacity: 0.7;
+  transition: all var(--transition-normal);
+}
+
+.empty-state-icon svg {
+  filter: drop-shadow(0 2px 8px rgba(66, 165, 245, 0.2));
+}
+
+.empty-state-content h4 {
+  margin: 0 0 0.75rem 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.empty-state-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
 /* Responsive design for tags overview */
 @media (max-width: 768px) {
   .tags-grid {
@@ -1177,6 +1232,20 @@ export default {
   .tags-overview {
     margin-top: 1rem;
     padding: 0.75rem;
+  }
+  
+  .tags-empty-state {
+    padding: 3rem 1.5rem;
+    margin: 0 0.5rem;
+  }
+  
+  .empty-state-content h4 {
+    font-size: 1.1rem;
+  }
+  
+  .empty-state-content p {
+    font-size: 0.9rem;
+    max-width: 250px;
   }
 }
 </style>
