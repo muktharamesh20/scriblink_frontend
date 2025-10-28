@@ -1,6 +1,6 @@
 <template>
   <div class="note-editor">
-    <div class="editor-header">
+    <div class="editor-header-fullscreen">
       <div class="editor-title">
         <input 
           v-model="noteTitle" 
@@ -343,6 +343,19 @@ export default {
   border-bottom: 1px solid var(--border-primary);
 }
 
+.editor-header-fullscreen {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
 .editor-title {
   flex: 1;
   margin-right: 1rem;
@@ -371,7 +384,8 @@ export default {
 
 .editor-content {
   flex: 1;
-  margin-bottom: 1rem;
+  padding: 2rem 2rem 0 2rem;
+  overflow-y: auto;
 }
 
 .content-textarea {
@@ -393,8 +407,9 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
+  padding: 1rem 2rem;
   border-top: 1px solid var(--border-primary);
+  background: var(--bg-primary);
 }
 
 .note-metadata {

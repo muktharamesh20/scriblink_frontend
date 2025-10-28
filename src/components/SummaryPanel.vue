@@ -306,9 +306,9 @@ export default {
 <style scoped>
 .summary-panel {
   padding: 1rem;
-  background: var(--bg-card); /* Use white background in light mode */
-  border-radius: 8px;
-  border: 1px solid var(--border-primary); /* Add subtle border */
+  background: transparent;
+  border-radius: 0;
+  border: none;
 }
 
 .panel-header {
@@ -406,12 +406,12 @@ export default {
 }
 
 .summary-display {
-  padding: 1rem;
-  background: var(--bg-card); /* Adapts to theme */
-  border-radius: 8px; /* More modern rounded corners */
-  border: 1px solid var(--border-primary); /* Adapts to theme */
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
   min-height: 100px;
-  box-shadow: var(--shadow-sm); /* Add subtle shadow */
+  box-shadow: none;
 }
 
 .summary-text {

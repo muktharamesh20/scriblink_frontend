@@ -1,18 +1,23 @@
 <template>
   <div class="dashboard">
-    <div class="dashboard-header">
-      <h1>Dashboard</h1>
-      <div class="dashboard-actions">
-        <button @click="createNewNote" class="btn btn-primary">
-          New Note
-        </button>
-        <button @click="createNewFolder" class="btn btn-secondary">
-          New Folder
-        </button>
-      </div>
-    </div>
-
     <div class="dashboard-content">
+      <div v-if="!selectedNote" class="welcome-section">
+        <div class="welcome">
+          <div class="welcome-content">
+            <h2>Welcome to ScribLink</h2>
+            <p>Create your first note or folder to get started!</p>
+            <div class="welcome-actions">
+              <button @click="createNewNote" class="btn btn-primary">
+                Create Note
+              </button>
+              <button @click="createNewFolder" class="btn btn-secondary">
+                Create Folder
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div v-if="!selectedNote" class="sidebar">
         <FolderTree 
           :folders="folders"
@@ -32,22 +37,21 @@
           @folder-drag-over="handleFolderDragOver"
           @folder-drag-leave="handleFolderDragLeave"
         />
-        
       </div>
 
-      <div class="main-content" :class="{ 'full-width': selectedNote }">
-        <!-- Note editor takes full space when a note is selected -->
-        <div v-if="selectedNote" class="note-editor">
-          <NoteEditor 
-            :note="selectedNote"
-            @note-updated="refreshNotes"
-            @note-deleted="handleNoteDeleted"
-            @exit-editor="exitNoteEditor"
-          />
-        </div>
+      <!-- Note editor takes full page when a note is selected -->
+      <div v-if="selectedNote" class="note-editor-fullscreen">
+        <NoteEditor 
+          :note="selectedNote"
+          @note-updated="refreshNotes"
+          @note-deleted="handleNoteDeleted"
+          @exit-editor="exitNoteEditor"
+        />
+      </div>
 
-        <!-- Folder view when in a folder but no note selected -->
-        <div v-else-if="currentFolder" class="folder-view">
+      <!-- Folder view when in a folder but no note selected -->
+      <div v-else-if="currentFolder" class="main-content">
+        <div class="folder-view">
           <div class="folder-header">
             <button @click="goBackToRoot" class="back-button">← Back to Root</button>
           </div>
@@ -60,27 +64,9 @@
             @note-moved="handleNoteMoved"
           />
         </div>
-
-        <!-- Welcome screen when no folder and no note selected -->
-        <div v-else class="welcome">
-          <div class="welcome-content">
-            <h2>Welcome to ScribLink</h2>
-            <p>Create your first note or folder to get started!</p>
-            <div class="welcome-actions">
-              <button @click="createNewNote" class="btn btn-primary">
-                Create Note
-              </button>
-              <button @click="createNewFolder" class="btn btn-secondary">
-                Create Folder
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-
-    <!-- Tags Overview Section -->
-    <div class="tags-overview">
+    <div v-if="!selectedNote" class="tags-overview">
       <div class="tags-overview-header">
         <h3>Tags Overview</h3>
         <button @click="refreshTagsOverview" class="btn btn-sm btn-secondary">
@@ -658,6 +644,19 @@ export default {
   display: flex;
   gap: 1rem;
   min-height: 500px;
+  margin: 2rem 0;
+}
+
+.note-editor-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar {
@@ -675,6 +674,31 @@ export default {
 
 .sidebar:hover {
   box-shadow: var(--shadow-lg);
+}
+
+.welcome-sidebar {
+  width: 300px;
+  min-height: 500px;
+  max-height: 70vh;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
+  overflow-y: auto;
+  transition: all var(--transition-normal);
+}
+
+.welcome-sidebar:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.welcome-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+  max-height: 70vh;
 }
 
 .main-content {
@@ -727,15 +751,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-primary);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
   transition: all var(--transition-normal);
 }
 
 .welcome:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: none;
 }
 
 .welcome-content {

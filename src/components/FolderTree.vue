@@ -386,9 +386,9 @@ export default {
 }
 
 .dropdown-toggle {
-  background: var(--accent-blue);
-  color: white;
-  border: none;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: 2px solid var(--accent-primary);
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -402,7 +402,8 @@ export default {
 }
 
 .dropdown-toggle:hover {
-  background: var(--accent-indigo);
+  background: var(--bg-hover);
+  color: var(--accent-primary);
   transform: scale(1.1);
   box-shadow: var(--shadow-md);
 }

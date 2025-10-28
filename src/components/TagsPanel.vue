@@ -140,10 +140,10 @@ export default {
 <style scoped>
 .tags-panel {
   padding: 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 8px;
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .panel-header {
