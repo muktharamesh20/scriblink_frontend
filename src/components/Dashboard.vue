@@ -67,13 +67,14 @@
       </div>
     </div>
     <div v-if="!selectedNote" class="tags-overview">
-      <div class="tags-overview-header">
-        <h3>Tags Overview</h3>
-        <button @click="refreshTagsOverview" class="btn btn-sm btn-secondary">
-          Refresh
-        </button>
-      </div>
-      <div class="tags-grid">
+      <div class="tags-overview-content">
+        <div class="tags-overview-header">
+          <h3>Tags Overview</h3>
+          <button @click="refreshTagsOverview" class="btn btn-sm btn-secondary">
+            Refresh
+          </button>
+        </div>
+        <div class="tags-grid">
         <div v-for="tagGroup in sortedTagsOverview" :key="tagGroup.tag" class="tag-group">
           <div class="tag-header">
             <span class="tag-name">{{ tagGroup.tag }}</span>
@@ -95,6 +96,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -659,7 +661,9 @@ export default {
   display: flex;
   gap: 1rem;
   min-height: 500px;
-  margin: 2rem 0;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .note-editor-fullscreen {
@@ -886,17 +890,16 @@ export default {
 
 /* Tags Overview Styles */
 .tags-overview {
-  margin-top: 2rem;
-  padding: 1rem;
-  background: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid var(--border-primary);
-  box-shadow: var(--shadow-md);
+  width: 100%;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
   transition: all var(--transition-normal);
 }
 
-.tags-overview:hover {
-  box-shadow: var(--shadow-lg);
+.tags-overview-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .tags-overview-header {

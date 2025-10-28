@@ -276,8 +276,8 @@ body {
 }
 
 .main-content {
-  padding: 2rem;
-  max-width: 1200px;
+  padding: 0;
+  max-width: 100%;
   margin: 0 auto;
 }
 

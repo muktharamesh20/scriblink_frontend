@@ -384,8 +384,10 @@ export default {
 
 .editor-content {
   flex: 1;
-  padding: 2rem 2rem 0 2rem;
+  padding: 2rem;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .content-textarea {
@@ -465,16 +467,18 @@ export default {
 
 /* Preview-only mode */
 .markdown-preview-only {
-  height: 500px;
-  border: 1px solid var(--border-secondary);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   overflow: hidden;
   background-color: var(--bg-card);
 }
 
 .markdown-preview-only .preview-content {
-  height: 100%;
-  padding: 1rem;
+  flex: 1;
+  padding: 2rem;
   overflow-y: auto;
   font-family: var(--font-secondary);
   line-height: 1.6;
@@ -724,28 +728,29 @@ export default {
 
 /* Simple markdown editor */
 .markdown-editor-simple {
-  height: 500px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
   overflow: hidden;
-  background-color: white;
+  background-color: var(--bg-card);
 }
 
 .editor-header-simple {
-  background-color: #f1f3f4;
+  background-color: var(--bg-secondary);
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-primary);
   font-size: 0.9rem;
   font-weight: 500;
-  color: #555;
+  color: var(--text-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .markdown-textarea-simple {
-  width: 100%;
-  height: calc(100% - 50px); /* Subtract header height */
+  flex: 1;
   border: none;
   outline: none;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -753,7 +758,8 @@ export default {
   line-height: 1.5;
   padding: 1rem;
   resize: none;
-  background-color: #fafafa;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }
 
 /* Responsive design */
