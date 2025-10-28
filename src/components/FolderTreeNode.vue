@@ -8,7 +8,6 @@
         'drag-over': isDragOver
       }"
       :style="{ paddingLeft: (level * 20) + 'px' }"
-      @click="$emit('folder-selected', folder)"
       draggable="true"
       @dragstart="handleDragStart"
       @dragend="handleDragEnd"
@@ -27,7 +26,7 @@
           {{ isExpanded ? '▼' : '▶' }}
         </button>
         
-        <span class="folder-name">{{ folder.title }}</span>
+        <span class="folder-name" @click="toggleExpanded">{{ folder.title }}</span>
         <div class="folder-actions">
           <button 
             @click.stop="console.log('Delete button clicked!', folder); deleteFolder(folder)" 
@@ -444,6 +443,14 @@ export default {
   font-size: 0.9rem;
   color: var(--text-primary);
   font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.folder-name:hover {
+  background-color: var(--bg-hover);
 }
 
 .folder-actions {

@@ -5,9 +5,9 @@
         <img src="/logo.png" alt="ScribLink" class="logo-image" />
       </div>
       <div class="nav-actions">
-        <button @click="toggleTheme" class="theme-toggle" :title="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+        <button @click="cycleTheme" class="theme-toggle" :title="getThemeTitle()">
           <div class="theme-icon">
-            <div class="theme-circle" :class="{ 'dark-mode': isDarkMode }"></div>
+            <div class="theme-circle" :class="getThemeClass()"></div>
           </div>
         </button>
         <span class="user-info">Welcome, {{ currentUser }}</span>
@@ -35,19 +35,44 @@ export default {
     const isAuthenticated = ref(!!localStorage.getItem('user'))
     const currentUser = ref(authService.getUsername() || '')
     
-    // Theme management
-    const isDarkMode = ref(localStorage.getItem('theme') === 'dark')
+    // Theme management - only light and dark
+    const themes = ['light', 'dark']
+    const currentThemeIndex = ref(0)
+    
+    // Initialize theme from localStorage
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme && themes.includes(savedTheme)) {
+      currentThemeIndex.value = themes.indexOf(savedTheme)
+    }
     
     // Apply theme on mount
     onMounted(() => {
-      document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light')
+      document.documentElement.setAttribute('data-theme', themes[currentThemeIndex.value])
     })
     
-    const toggleTheme = () => {
-      isDarkMode.value = !isDarkMode.value
-      const theme = isDarkMode.value ? 'dark' : 'light'
+    const cycleTheme = () => {
+      currentThemeIndex.value = (currentThemeIndex.value + 1) % themes.length
+      const theme = themes[currentThemeIndex.value]
       document.documentElement.setAttribute('data-theme', theme)
       localStorage.setItem('theme', theme)
+    }
+    
+    const getThemeTitle = () => {
+      const themeNames = {
+        'light': 'Light Mode',
+        'dark': 'Dark Mode'
+      }
+      const currentTheme = themes[currentThemeIndex.value]
+      const nextTheme = themes[(currentThemeIndex.value + 1) % themes.length]
+      return `Current: ${themeNames[currentTheme]} - Click for ${themeNames[nextTheme]}`
+    }
+    
+    const getThemeClass = () => {
+      const themeClasses = {
+        'light': 'light-mode',
+        'dark': 'dark-mode'
+      }
+      return themeClasses[themes[currentThemeIndex.value]]
     }
     
     // Function to update auth state
@@ -87,8 +112,9 @@ export default {
     return {
       isAuthenticated,
       currentUser,
-      isDarkMode,
-      toggleTheme,
+      cycleTheme,
+      getThemeTitle,
+      getThemeClass,
       logout
     }
   }
@@ -191,8 +217,13 @@ body {
   position: relative;
 }
 
+.theme-circle.light-mode {
+  background: var(--accent-primary);
+  box-shadow: inset 0 0 0 2px var(--bg-primary);
+}
+
 .theme-circle.dark-mode {
-  background: var(--text-primary);
+  background: var(--accent-primary);
   box-shadow: inset 0 0 0 2px var(--bg-primary);
 }
 
@@ -206,6 +237,11 @@ body {
   border-radius: 50%;
   background: var(--bg-primary);
   transition: all var(--transition-fast);
+}
+
+.theme-circle.light-mode::before {
+  background: var(--text-primary);
+  transform: scale(0.3);
 }
 
 .theme-circle.dark-mode::before {

@@ -869,8 +869,8 @@ export default {
 }
 
 .note-item.active {
-  background-color: rgba(66, 165, 245, 0.1);
-  border-left: 3px solid var(--accent-blue);
+  background-color: var(--bg-hover);
+  border-left: 3px solid var(--accent-primary);
 }
 
 .note-title {

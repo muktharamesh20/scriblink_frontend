@@ -492,17 +492,17 @@ export default {
 }
 
 .btn-primary {
-  background: #3498db;
-  color: white;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2980b9;
+  background: var(--accent-secondary);
   transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
-  background: #bdc3c7;
+  background: var(--text-muted);
   cursor: not-allowed;
 }
 
@@ -521,7 +521,7 @@ export default {
   margin-top: 1rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .summary-text h1 { font-size: 1.4rem; }
@@ -529,11 +529,11 @@ export default {
 .summary-text h3 { font-size: 1.1rem; }
 .summary-text h4 { font-size: 1rem; }
 .summary-text h5 { font-size: 0.9rem; }
-.summary-text h6 { font-size: 0.8rem; color: #666; }
+.summary-text h6 { font-size: 0.8rem; color: var(--text-muted); }
 
 .summary-text p {
   margin-bottom: 0.75rem;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.6;
 }
 
@@ -548,26 +548,26 @@ export default {
 }
 
 .summary-text blockquote {
-  border-left: 3px solid #3498db;
+  border-left: 3px solid var(--accent-primary);
   margin: 0.75rem 0;
   padding: 0.5rem 0.75rem;
-  background-color: #f8f9fa;
-  color: #555;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
   font-style: italic;
 }
 
 .summary-text code {
-  background-color: #f1f3f4;
+  background-color: var(--bg-tertiary);
   padding: 0.15rem 0.3rem;
   border-radius: 3px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.85em;
-  color: #e74c3c;
+  color: var(--accent-warning);
 }
 
 .summary-text pre {
-  background-color: #2d3748;
-  color: #e2e8f0;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
   padding: 0.75rem;
   border-radius: 4px;
   overflow-x: auto;
