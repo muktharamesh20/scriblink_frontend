@@ -9,6 +9,7 @@
           placeholder="Note title"
           @blur="updateTitle"
           @keyup.enter="updateTitle"
+          @click="startEditing"
         />
       </div>
       
@@ -111,7 +112,7 @@
 
 <script>
 import { ref, watch, nextTick, computed } from 'vue'
-import { notesAPI } from '../services/apiServices.js'
+import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 import TagsPanel from './TagsPanel.vue'
 import SummaryPanel from './SummaryPanel.vue'
@@ -168,7 +169,7 @@ export default {
       })
 
       try {
-        await notesAPI.setTitle(props.note._id, user, noteTitle.value)
+        await requestAPI.setTitle(props.note._id, noteTitle.value, user)
         emit('note-updated')
         console.log('✅ Title updated successfully')
       } catch (error) {
@@ -185,7 +186,7 @@ export default {
 
       saving.value = true
       try {
-        await notesAPI.updateContent(props.note._id, noteContent.value)
+        await requestAPI.updateContent(props.note._id, noteContent.value)
         emit('note-updated')
       } catch (error) {
         console.error('Error updating content:', error)
@@ -222,7 +223,7 @@ export default {
       if (!user) return
 
       try {
-        await notesAPI.deleteNote(props.note._id)
+        await requestAPI.deleteNote(props.note._id)
         emit('note-deleted')
       } catch (error) {
         console.error('Error deleting note:', error)
@@ -234,12 +235,47 @@ export default {
       // Save the note before exiting
       await saveNote()
       
-      // Auto-generate summary if needed
-      if (summaryPanelRef.value && summaryPanelRef.value.autoGenerateSummaryIfNeeded) {
-        await summaryPanelRef.value.autoGenerateSummaryIfNeeded()
+      // Auto-generate summary in background if needed (regardless of panel state)
+      try {
+        await autoGenerateSummaryInBackground()
+      } catch (error) {
+        console.log('📝 Background summary generation failed (non-critical):', error)
+        // Don't show error to user as this is background operation
       }
       
       emit('exit-editor')
+    }
+
+    const autoGenerateSummaryInBackground = async () => {
+      const user = authService.getUser()
+      if (!user) return
+
+      // Check if note has substantial content (use local noteContent since props might not be updated yet)
+      if (!noteContent.value || noteContent.value.trim().length < 50) {
+        console.log('📝 Note content too short for summary generation')
+        return
+      }
+
+      try {
+        // Check if summary already exists
+        const existingSummary = await requestAPI.getSummary(user, props.note._id)
+        if (existingSummary.summary && existingSummary.summary.trim() !== '') {
+          console.log('📝 Summary already exists, skipping generation')
+          return
+        }
+      } catch (error) {
+        // If getSummary fails, assume no summary exists and proceed
+        console.log('📝 No existing summary found, proceeding with generation')
+      }
+
+      try {
+        console.log('📝 Auto-generating summary in background for note:', props.note.title)
+        await requestAPI.generateSummary(user, props.note._id)
+        console.log('✅ Background summary generation completed')
+      } catch (error) {
+        console.log('📝 Background summary generation failed:', error)
+        throw error
+      }
     }
 
     const toggleTags = () => {

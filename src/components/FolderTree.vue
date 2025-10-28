@@ -56,13 +56,22 @@
         >
           <span class="note-icon">•</span>
           <span class="note-title">{{ note.title || 'Untitled Note' }}</span>
-          <button 
-            @click.stop="deleteNote(note)" 
-            class="btn-delete-note"
-            title="Delete note"
-          >
-            ×
-          </button>
+          <div class="note-actions">
+            <button 
+              @click.stop="showSummaryPopup(note)" 
+              class="btn-summary"
+              title="View summary"
+            >
+              ✨
+            </button>
+            <button 
+              @click.stop="deleteNote(note)" 
+              class="btn-delete-note"
+              title="Delete note"
+            >
+              ×
+            </button>
+          </div>
         </div>
       </div>
 
@@ -94,6 +103,13 @@
         </button>
       </div>
     </div>
+    
+    <!-- Summary Popup -->
+    <SummaryPopup 
+      :note="selectedNoteForSummary"
+      :is-visible="showSummaryModal"
+      @close="closeSummaryPopup"
+    />
   </div>
 </template>
 
@@ -102,11 +118,13 @@ import { ref, nextTick } from 'vue'
 import { requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 import FolderTreeNode from './FolderTreeNode.vue'
+import SummaryPopup from './SummaryPopup.vue'
 
 export default {
   name: 'FolderTree',
   components: {
-    FolderTreeNode
+    FolderTreeNode,
+    SummaryPopup
   },
   props: {
     folders: {
@@ -135,6 +153,10 @@ export default {
     const showCreateForm = ref(false)
     const newFolderName = ref('')
     const showDropdown = ref(false)
+    
+    // Summary popup state
+    const showSummaryModal = ref(false)
+    const selectedNoteForSummary = ref(null)
 
     const createFolder = async () => {
       console.log('🚀 createFolder called')
@@ -282,6 +304,18 @@ export default {
       }
     }
 
+    const showSummaryPopup = (note) => {
+      console.log('✨ [FolderTree] Showing summary popup for note:', note.title)
+      selectedNoteForSummary.value = note
+      showSummaryModal.value = true
+    }
+
+    const closeSummaryPopup = () => {
+      console.log('✨ [FolderTree] Closing summary popup')
+      showSummaryModal.value = false
+      selectedNoteForSummary.value = null
+    }
+
     const handleNoteDragStart = (event, note) => {
       emit('drag-start')
       event.dataTransfer.setData('text/plain', JSON.stringify({
@@ -384,12 +418,16 @@ export default {
       showCreateForm,
       newFolderName,
       showDropdown,
+      showSummaryModal,
+      selectedNoteForSummary,
       createFolder,
       cancelCreate,
       showCreateFolderForm,
       createNewNote,
       deleteFolder,
       deleteNote,
+      showSummaryPopup,
+      closeSummaryPopup,
       handleNoteDragStart,
       handleNoteDragEnd,
       handleChildDragStart,
@@ -634,6 +672,43 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text-primary);
+}
+
+.note-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.note-item:hover .note-actions {
+  opacity: 1;
+}
+
+.btn-summary {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  filter: grayscale(100%) brightness(0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.btn-summary:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.1);
+  filter: grayscale(0%) brightness(1);
 }
 
 .btn-delete-note {
