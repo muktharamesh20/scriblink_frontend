@@ -4,7 +4,7 @@
       <div class="welcome-container">
         <div class="welcome-content">
           <h2>Welcome to Scriblink</h2>
-          <p>Create your first note or folder to get started!</p>
+          <p>Create a note or folder to get started!</p>
           <div class="welcome-actions">
             <button @click="createNewNote" class="btn btn-primary">
               Create Note
