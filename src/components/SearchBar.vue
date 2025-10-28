@@ -37,11 +37,9 @@
         >
           <div class="result-title">
             <span class="result-type">{{ result.type }}</span>
-            <span class="result-note-title">{{ highlightText(result.note.title, searchQuery) }}</span>
+            <span class="result-note-title" v-html="highlightText(result.note.title, searchQuery)"></span>
           </div>
-          <div class="result-content">
-            {{ highlightText(result.content, searchQuery) }}
-          </div>
+          <div class="result-content" v-html="highlightText(result.content, searchQuery)"></div>
           <div class="result-meta">
             <span class="result-folder">{{ getFolderName(result.note.folderId) }}</span>
             <span class="result-date">{{ formatRelativeTime(result.note.last_modified) }}</span>
@@ -459,7 +457,6 @@ export default {
 :deep(mark) {
   background: var(--bg-accent);
   color: var(--text-primary);
-  padding: 0.125rem 0.25rem;
   border-radius: 3px;
   font-weight: 500;
 }
