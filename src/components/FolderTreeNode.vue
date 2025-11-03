@@ -107,7 +107,7 @@
 
 <script>
 import { ref, computed } from 'vue'
-import { requestAPI } from '../services/apiServices.js'
+import { notesAPI, folderAPI } from '../services/apiServices.js'
 import SummaryPopup from './SummaryPopup.vue'
 import { authService } from '../services/authService.js'
 
@@ -186,9 +186,9 @@ export default {
         return
       }
 
-      console.log('🔄 Calling requestAPI.deleteFolder with:', { folderId: folder._id, user })
+      console.log('🔄 Calling folderAPI.deleteFolder with:', { folderId: folder._id, user })
       try {
-        const result = await requestAPI.deleteFolder(folder._id, user)
+        const result = await folderAPI.deleteFolder(folder._id, user)
         console.log('✅ Folder deleted successfully:', result)
         emit('folder-deleted')
       } catch (error) {
@@ -212,9 +212,9 @@ export default {
         return
       }
 
-      console.log('🔄 Calling requestAPI.deleteNote with:', { noteId: note._id, user })
+      console.log('🔄 Calling notesAPI.deleteNote with:', { noteId: note._id, user })
       try {
-        const result = await requestAPI.deleteNote(note._id, user)
+        const result = await notesAPI.deleteNote(note._id)
         console.log('✅ Note deleted successfully:', result)
         emit('note-deleted')
       } catch (error) {
@@ -362,8 +362,8 @@ export default {
         })
         
         try {
-          console.log('🔄 [FolderTreeNode.handleDrop] Calling requestAPI.moveFolder');
-          const result = await requestAPI.moveFolder(data.id, props.folder._id)
+          console.log('🔄 [FolderTreeNode.handleDrop] Calling folderAPI.moveFolder');
+          const result = await folderAPI.moveFolder(data.id, props.folder._id)
           console.log('✅ [FolderTreeNode.handleDrop] Folder moved successfully:', result)
           console.log('🔄 [FolderTreeNode.handleDrop] Emitting folder-moved event');
           emit('folder-moved')
@@ -389,8 +389,8 @@ export default {
         console.log('📄 [FolderTreeNode.handleDrop] Moving note:', data.id, 'to folder:', props.folder._id)
         
         try {
-          console.log('🔄 [FolderTreeNode.handleDrop] Calling requestAPI.moveNote');
-          const result = await requestAPI.moveNote(data.id, props.folder._id, user)
+          console.log('🔄 [FolderTreeNode.handleDrop] Calling folderAPI.moveNote');
+          const result = await folderAPI.moveNote(data.id, props.folder._id, user)
           console.log('✅ [FolderTreeNode.handleDrop] Note moved successfully:', result)
           emit('note-moved')
         } catch (error) {

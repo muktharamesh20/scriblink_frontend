@@ -127,11 +127,11 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { authService } from '../services/authService.js'
-import { requestAPI } from '../services/apiServices.js'
 import FolderTree from './FolderTree.vue'
 import FolderView from './FolderView.vue'
 import NoteEditor from './NoteEditor.vue'
 import SearchBar from './SearchBar.vue'
+import { notesAPI, folderAPI, tagsAPI } from '../services/apiServices.js'
 
 export default {
   name: 'Dashboard',
@@ -172,7 +172,7 @@ export default {
       try {
         console.log('🔄 Loading all notes for sidebar...')
         // Get ALL notes for the user (not just root folder notes)
-        const userNotes = await requestAPI.getUserNotes(user, undefined)
+        const userNotes = await notesAPI.getUserNotes(user, undefined)
         console.log('📦 API response:', userNotes)
         allNotes.value = userNotes.notes || []
         console.log('✅ Loaded notes for sidebar:', allNotes.value.length, 'notes')
@@ -256,7 +256,7 @@ export default {
 
       try {
         // Get all user tags
-        const response = await requestAPI.getUserTags(user)
+        const response = await tagsAPI.getUserTags(user)
         if (response.tags && response.tags.length > 0) {
           // Create a map of tag labels to tag IDs
           const tagIdMap = {}
@@ -282,7 +282,7 @@ export default {
           // For each note, get its tags and add to appropriate groups
           for (const note of allNotes.value) {
             try {
-              const noteTagsResponse = await requestAPI.getItemTags(user, note._id)
+              const noteTagsResponse = await tagsAPI.getItemTags(user, note._id)
               
               // Handle both old format {tags: [...]} and new format [...]
               let tagsArray = []
@@ -340,7 +340,7 @@ export default {
         const tagId = note.tagId || tagLabel // Fallback to label if no ID
         
         console.log('🏷️ [Dashboard] Removing tag from note:', { tagLabel, tagId, noteId: note._id })
-        await requestAPI.untagItem(user, note._id, tagId)
+        await tagsAPI.removeTag(user, note._id, tagId)
         
         // Refresh the tags overview to reflect the change
         await loadTagsOverview()
@@ -417,7 +417,7 @@ export default {
     const refreshFolders = async () => {
       console.log('🚀 [Dashboard.refreshFolders] Starting folder refresh');
       const user = authService.getUser()
-      const rootFolder = authService.getRootFolder()
+      const rootFolder = authService.getRootFolderId({user:user})
       console.log('🔍 [Dashboard.refreshFolders] User and root folder:', { user, rootFolder });
       
       if (!user || !rootFolder) {
@@ -426,9 +426,8 @@ export default {
       }
 
       try {
-        console.log('🔄 [Dashboard.refreshFolders] Calling requestAPI.getFolderStructure');
-        // Get folder structure using Request API without folderId to get ALL folders in a flat array
-        const folderStructure = await requestAPI.getFolderStructure(user, undefined)
+        console.log('🔄 [Dashboard.refreshFolders] Calling folderAPI.getFolderStructure');
+        const folderStructure = await folderAPI.getFolderStructure(user, undefined)
         console.log('🔍 [Dashboard.refreshFolders] Folder structure received:', folderStructure);
         
         const allFolders = folderStructure.folders || []
@@ -517,7 +516,7 @@ export default {
       try {
         // Get user notes for the current folder or root folder
         const folderId = currentFolder.value?._id || rootFolder
-        const userNotes = await requestAPI.getUserNotes(user, folderId)
+        const userNotes = await notesAPI.getUserNotes(user, folderId)
         notes.value = userNotes.notes || []
         
         // Also refresh sidebar notes
@@ -542,7 +541,7 @@ export default {
       if (!user) return
       
       try {
-        const folderNotes = await requestAPI.getUserNotes(user, folder._id)
+        const folderNotes = await notesAPI.getUserNotes(user, folder._id)
         notes.value = folderNotes.notes || []
         console.log('🔍 Loaded notes for folder:', folderNotes.notes?.length || 0, 'notes')
       } catch (error) {
@@ -580,7 +579,7 @@ export default {
       if (!user || !rootFolder) return
       
       try {
-        const rootNotes = await requestAPI.getUserNotes(user, rootFolder)
+        const rootNotes = await notesAPI.getUserNotes(user, rootFolder)
         notes.value = rootNotes.notes || []
       } catch (error) {
         console.error('Error loading root notes:', error)
@@ -641,7 +640,7 @@ export default {
           throw new Error('Invalid folder ID: ' + folderId)
         }
         
-        const response = await requestAPI.createNote(user, 'Start writing your note...', folderId, 'Untitled Note')
+        const response = await notesAPI.createNote(user, 'Start writing your note...', folderId, 'Untitled Note')
         console.log('✅ Note created:', response)
         
         if (response.note) {
@@ -709,7 +708,7 @@ export default {
       try {
         // Create folder using Request API
         const parentFolderId = currentFolder.value?._id || rootFolder
-        await requestAPI.createFolder(user, title, parentFolderId)
+        await folderAPI.createFolder(user, title, parentFolderId)
         await refreshFolders()
       } catch (error) {
         console.error('Error creating folder:', error)

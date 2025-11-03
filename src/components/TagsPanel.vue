@@ -26,7 +26,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue'
-import { requestAPI } from '../services/apiServices.js'
+import { tagsAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -57,7 +57,7 @@ export default {
 
       try {
         // Use the updated getItemTags endpoint
-        const response = await requestAPI.getItemTags(user, props.note._id)
+        const response = await tagsAPI.getItemTags(user, props.note._id)
         console.log('🔍 [TagsPanel] getItemTags response:', response)
         
         // Handle both old format {tags: [...]} and new format [...]
@@ -118,12 +118,12 @@ export default {
             const tagIdentifier = tagToRemove.id
             console.log('🗑️ Removing tag with ID:', tagIdentifier)
             console.log('🔍 Tag to remove object:', tagToRemove)
-            await requestAPI.untagItem(user, props.note._id, tagIdentifier)
+            await tagsAPI.removeTag(user, props.note._id, tagIdentifier)
             activeTags.value = activeTags.value.filter(tag => tag.label !== tagValue)
           }
         } else {
           // Add tag
-          const response = await requestAPI.tagItem(user, props.note._id, tagValue)
+          const response = await tagsAPI.addTag(user, props.note._id, tagValue)
           // Store the tag with the ID returned from the API
           activeTags.value.push({ 
             label: tagValue, 

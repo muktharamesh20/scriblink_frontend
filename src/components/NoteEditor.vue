@@ -112,7 +112,7 @@
 
 <script>
 import { ref, watch, nextTick, computed } from 'vue'
-import { requestAPI } from '../services/apiServices.js'
+import { notesAPI, summariesAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 import TagsPanel from './TagsPanel.vue'
 import SummaryPanel from './SummaryPanel.vue'
@@ -169,7 +169,7 @@ export default {
       })
 
       try {
-        await requestAPI.setTitle(props.note._id, noteTitle.value, user)
+        await notesAPI.setTitle(props.note._id, user, noteTitle.value)
         emit('note-updated')
         console.log('✅ Title updated successfully')
       } catch (error) {
@@ -186,7 +186,7 @@ export default {
 
       saving.value = true
       try {
-        await requestAPI.updateContent(props.note._id, noteContent.value)
+        await notesAPI.updateContent(props.note._id, noteContent.value)
         emit('note-updated')
       } catch (error) {
         console.error('Error updating content:', error)
@@ -223,7 +223,7 @@ export default {
       if (!user) return
 
       try {
-        await requestAPI.deleteNote(props.note._id)
+        await notesAPI.deleteNote(props.note._id)
         emit('note-deleted')
       } catch (error) {
         console.error('Error deleting note:', error)
@@ -258,7 +258,7 @@ export default {
 
       try {
         // Check if summary already exists
-        const existingSummary = await requestAPI.getSummary(user, props.note._id)
+        const existingSummary = await summariesAPI.getSummary(user, props.note._id)
         if (existingSummary.summary && existingSummary.summary.trim() !== '') {
           console.log('📝 Summary already exists, skipping generation')
           return
@@ -270,7 +270,7 @@ export default {
 
       try {
         console.log('📝 Auto-generating summary in background for note:', props.note.title)
-        await requestAPI.generateSummary(user, props.note._id)
+        await summariesAPI.generateSummary(user, props.note._id)
         console.log('✅ Background summary generation completed')
       } catch (error) {
         console.log('📝 Background summary generation failed:', error)

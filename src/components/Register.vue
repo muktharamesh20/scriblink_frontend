@@ -64,7 +64,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { requestAPI } from '../services/apiServices.js'
+import { authAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -121,16 +121,15 @@ export default {
 
       try {
         console.log('🌐 Making API call to register...')
-        const response = await requestAPI.registerUser(form.username, form.password)
+        const authResponse = await authAPI.register(form.username, form.password)
         
-        if (response.user) {
-          // Store both user and root folder data with username
-          authService.setUserDataWithUsername({
-            user: response.user,
-            rootFolder: response.rootFolder
-          }, form.username)
+        if (authResponse.user) {
+          const userId = authResponse.user
           
-          console.log('✅ Registration successful - User:', response.user, 'Root Folder:', response.rootFolder)
+          // Store user with username - root folder will be handled by backend/dashboard
+          authService.setUserWithUsername(userId, form.username)
+          
+          console.log('✅ Registration successful - User:', userId)
           success.value = 'Account created successfully! Redirecting to dashboard...'
           
           // Dispatch auth-changed event to update navbar

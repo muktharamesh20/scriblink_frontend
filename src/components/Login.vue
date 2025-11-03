@@ -49,7 +49,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { requestAPI } from '../services/apiServices.js'
+import { authAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -74,21 +74,21 @@ export default {
       error.value = ''
 
       try {
-        const response = await requestAPI.loginUser(form.username, form.password)
+        const authResponse = await authAPI.authenticate(form.username, form.password)
         
-        if (response.user && response.rootFolder) {
-          // Store both user and root folder data with username
-          authService.setUserDataWithUsername({
-            user: response.user,
-            rootFolder: response.rootFolder
-          }, form.username)
+        if (authResponse.user) {
+          const userId = authResponse.user
           
-          console.log('✅ Login successful - User:', response.user, 'Root Folder:', response.rootFolder)
+          // The rootFolder will be handled by the request API response
+          // For now, just store the user - dashboard will handle folder initialization
+          authService.setUserWithUsername(userId, form.username)
+          
+          console.log('✅ Login successful - User:', userId)
           // Dispatch auth-changed event to update navbar
           window.dispatchEvent(new Event('auth-changed'))
           router.push('/dashboard')
         } else {
-          error.value = response.error || 'Invalid credentials'
+          error.value = authResponse.error || 'Invalid credentials'
         }
       } catch (err) {
         console.error('❌ Login error:', err)

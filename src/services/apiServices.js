@@ -21,8 +21,8 @@ export const notesAPI = {
     return requestAPI.createNote(user, content, folder, title)
   },
 
-  getUserNotes: async (user, folderId) => {
-    return requestAPI.getUserNotes(user, folderId)
+  getUserNotes: async (user, folderId = undefined, tagLabel = null) => {
+    return requestAPI.getUserNotes(user, folderId, tagLabel)
   },
 
   updateNote: async (noteId, content, title) => {
@@ -44,21 +44,37 @@ export const notesAPI = {
 
 // Folder API calls (DEPRECATED - use requestAPI instead)
 export const folderAPI = {
-  // All these methods now route through requestAPI
-  createFolder: async (user, title, parentFolderId) => {
-    return requestAPI.createFolder(user, title, parentFolderId)
+  getRootFolder: async () => {
+    return requestAPI._getRootFolderId(localStorage.getItem('user'))
   },
 
-  getFolderStructure: async (user, folderId) => {
+  getFolderStructure: async (user, folderId = undefined) => {
     return requestAPI.getFolderStructure(user, folderId)
+  },
+
+  createFolder: async (user, title, parent) => {
+    try {
+      const response = await api.post('/Folder/createFolder', {
+        user,
+        title,
+        parent
+      })
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
   },
 
   moveFolder: async (folder, newParent) => {
     return requestAPI.moveFolder(folder, newParent)
   },
 
-  deleteFolder: async (folderId) => {
-    return requestAPI.deleteFolder(folderId, localStorage.getItem('user'))
+  deleteFolder: async (folderId, user) => {
+    return requestAPI.deleteFolder(folderId, user || localStorage.getItem('user'))
+  },
+
+  moveNote: async (noteId, folderId, user) => {
+    return requestAPI.moveNote(noteId, folderId, user)
   },
 
   // These internal methods should not be used directly - use requestAPI methods instead
@@ -136,6 +152,10 @@ export const summariesAPI = {
 
   getUserSummaries: async (user) => {
     return requestAPI.getUserSummaries(user)
+  },
+
+  generateSummary: async (user, noteId) => {
+    return requestAPI.generateSummary(user, noteId)
   }
 }
 
@@ -145,7 +165,7 @@ export const requestAPI = {
   // User management
   registerUser: async (username, password) => {
     try {
-      const response = await api.post('/Request/registerUser', {
+      const response = await api.post('/PasswordAuth/register', {
         username,
         password
       })
@@ -163,12 +183,21 @@ export const requestAPI = {
         password
       }
       console.log('📡 [requestAPI.loginUser] Sending request to /Request/loginUser')
-      const response = await api.post('/Request/loginUser', requestPayload)
+      const response = await api.post('/PasswordAuth/authenticate', requestPayload)
       console.log('✅ [requestAPI.loginUser] Response received:', response.data)
       return response.data
     } catch (error) {
       console.error('❌ [requestAPI.loginUser] Login failed:', error)
       console.error('❌ [requestAPI.loginUser] Error response:', error.response?.data)
+      throw error.response?.data || error
+    }
+  },
+
+  getRootFolderId: async (user) => {
+    try {
+      const response = await api.post('/Folder/_getRootFolderId', { user })
+      return response.data.rootFolder
+    } catch (error) {
       throw error.response?.data || error
     }
   },
@@ -289,14 +318,13 @@ export const requestAPI = {
   },
 
   // Note management
-  createNote: async (user, content, folder, title, tags = null) => {
+  createNote: async (user, content, folder, title) => {
     try {
-      const response = await api.post('/Request/createNote', {
+      const response = await api.post('/Notes/createNote', {
         user,
         content,
         folder,
         title,
-        tags
       })
       return response.data
     } catch (error) {

@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import { notesAPI, folderAPI, requestAPI } from '../services/apiServices.js'
+import { notesAPI, folderAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -82,7 +82,7 @@ export default {
 
       try {
         // Use unified Request API to create note in the current folder
-        const response = await requestAPI.createNote(user, 'Start writing your note...', props.folder._id, 'Untitled Note')
+        const response = await notesAPI.createNote(user, 'Start writing your note...', props.folder._id, 'Untitled Note')
         if (response.note) {
           emit('note-created', response)
         }
@@ -101,7 +101,7 @@ export default {
       if (!user) return
 
       try {
-        await notesAPI.deleteNote(note._id, user)
+        await notesAPI.deleteNote(note._id)
         emit('note-deleted')
       } catch (error) {
         console.error('Error deleting note:', error)
@@ -147,7 +147,7 @@ export default {
         console.log('📄 Moving note:', data.id, 'to folder:', props.folder._id)
         
         try {
-          const result = await requestAPI.moveNote(data.id, props.folder._id, user)
+          const result = await folderAPI.moveNote(data.id, props.folder._id, user)
           console.log('✅ Note moved successfully:', result)
           emit('note-moved')
         } catch (error) {

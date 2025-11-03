@@ -22,8 +22,12 @@ api.interceptors.request.use(
     const user = localStorage.getItem('user')
     if (user) {
       console.log('👤 User:', user)
-      // Add user to request body for endpoints that require it
-      if (config.method === 'post' && config.data) {
+      // Only add user to request body if:
+      // 1. It's a POST request
+      // 2. Request data exists
+      // 3. User is not already in the request data (explicitly provided)
+      // 4. Endpoint is not PasswordAuth (which uses username/password instead)
+      if (config.method === 'post' && config.data && !config.data.user && !config.url?.includes('PasswordAuth')) {
         config.data.user = user
       }
     } else {
