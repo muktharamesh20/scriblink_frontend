@@ -490,9 +490,8 @@ export const requestAPI = {
   // Summary management
   setSummary: async (user, itemId, summary) => {
     try {
-      const response = await api.post('/Request/setSummary', {
-        user,
-        itemId,
+      const response = await api.post('/Summaries/setSummary', {
+        item: itemId,
         summary
       })
       return response.data
@@ -503,9 +502,8 @@ export const requestAPI = {
 
   getSummary: async (user, itemId) => {
     try {
-      const response = await api.post('/Request/getSummary', {
-        user,
-        itemId
+      const response = await api.post('/Summaries/getSummary', {
+        item:itemId
       })
       return response.data
     } catch (error) {
@@ -515,10 +513,7 @@ export const requestAPI = {
 
   deleteSummary: async (user, itemId) => {
     try {
-      const response = await api.post('/Request/deleteSummary', {
-        user,
-        itemId
-      })
+      const response = await api.post('/Summaries/deleteSummary', {item:itemId})
       return response.data
     } catch (error) {
       throw error.response?.data || error
@@ -527,7 +522,7 @@ export const requestAPI = {
 
   getUserSummaries: async (user) => {
     try {
-      const response = await api.post('/Request/getUserSummaries', {
+      const response = await api.post('/Notes/getNotesByUser', {
         user
       })
       return response.data
@@ -539,12 +534,42 @@ export const requestAPI = {
   // Generate summary with AI
   generateSummary: async (user, noteId) => {
     try {
-      const response = await api.post('/Request/generateSummary', {
-        user,
-        noteId
+      console.log('🔍 [generateSummary] Generating summary for note:', noteId)
+      
+      // Ensure noteId is a string
+      const noteIdString = typeof noteId === 'string' ? noteId : noteId?._id || noteId?.toString()
+      
+      if (!noteIdString) {
+        throw new Error('Invalid noteId provided')
+      }
+      
+      const noteDetailsResponse = await api.post('/Notes/getNoteDetails', {
+        user: user,
+        noteId: noteIdString
       })
-      return response.data
+      
+      const noteDetails = noteDetailsResponse.data
+      
+      if (noteDetails.error) {
+        throw new Error(noteDetails.error)
+      }
+
+      console.log('🔍 [generateSummary] Note details:', noteDetails)
+
+      // Extract content from note details - response should be NoteStructure with content directly
+      const noteContent = noteDetails.content
+      
+      if (!noteContent) {
+        throw new Error('Note content not found in response')
+      }
+
+      const summaryResult = await api.post('/Summaries/setSummaryWithAI', {
+        text: noteContent,
+        item: noteIdString
+      })
+      return summaryResult.data
     } catch (error) {
+      console.error('❌ [generateSummary] Error:', error)
       throw error.response?.data || error
     }
   }
