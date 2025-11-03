@@ -376,14 +376,90 @@ export const requestAPI = {
 
   getUserNotes: async (user, folderId = undefined, tagLabel = null) => {
     try {
-      const response = await api.post('/Request/getUserNotes', {
-        user,
-        folderId,
-        tagLabel
-      })
-      return response.data
+      // 1. Get all notes for the user
+      const notesResult = await api.post('/Notes/getNotesByUser', {
+        ownerId: user
+      });
+      
+      if (notesResult.data?.error) {
+        throw new Error(notesResult.data.error);
+      }
+      
+      // Backend returns array directly, but validate it's an array
+      let notes = Array.isArray(notesResult.data) ? notesResult.data : [];
+
+      // 2. Get all folders for this user to determine folderId mapping
+      // Try getAllFolders first, fallback to getFolderStructure if it fails
+      let allFolders = [];
+      try {
+        const allFoldersResult = await api.post('/Folder/getAllFolders', { user });
+        
+        if (allFoldersResult.data?.error) {
+          throw new Error(allFoldersResult.data.error);
+        }
+        
+        allFolders = Array.isArray(allFoldersResult.data) ? allFoldersResult.data : [];
+      } catch (error) {
+        console.warn('⚠️ [getUserNotes] getAllFolders failed, trying getFolderStructure:', error.message);
+        // Fallback: use getFolderStructure to get all folders
+        try {
+          const folderStructureResult = await api.post('/Request/getFolderStructure', { user });
+          if (folderStructureResult.data?.error) {
+            console.warn('⚠️ [getUserNotes] getFolderStructure also failed:', folderStructureResult.data.error);
+            allFolders = [];
+          } else {
+            // getFolderStructure returns { folders: [], items: [] }
+            allFolders = Array.isArray(folderStructureResult.data?.folders) 
+              ? folderStructureResult.data.folders 
+              : [];
+          }
+        } catch (fallbackError) {
+          console.warn('⚠️ [getUserNotes] Both folder endpoints failed, continuing with empty folders:', fallbackError.message);
+          allFolders = [];
+        }
+      }
+
+      // Build a mapping of noteId -> folderId
+      const noteToFolderMap = new Map();
+      for (const folder of allFolders) {
+        if (Array.isArray(folder.elements)) {
+          for (const noteId of folder.elements) {
+            noteToFolderMap.set(noteId, folder._id);
+          }
+        }
+      }
+
+      // Augment notes with virtual 'folderId'
+      let notesWithFolder = notes.map((note) => ({
+        ...note,
+        folderId: noteToFolderMap.get(note._id) || null,
+      }));
+
+      // Folder filter
+      if (folderId !== undefined) {
+        notesWithFolder = notesWithFolder.filter((note) => note.folderId === folderId);
+      }
+
+      // Tag filter (optional)
+      if (tagLabel !== undefined && tagLabel !== null) {
+        const tagResult = await api.post('/Tags/_getAllUserTags', { user });
+        if (tagResult.data?.error) {
+          throw new Error(`Failed to get tags: ${tagResult.data.error}`);
+        }
+        const tagWithLabel = (tagResult.data || []).find((tag) => tag.label === tagLabel);
+
+        if (tagWithLabel) {
+          notesWithFolder = notesWithFolder.filter(note =>
+            Array.isArray(tagWithLabel.items) && tagWithLabel.items.includes(note._id)
+          );
+        } else {
+          notesWithFolder = []; // No notes for this tag
+        }
+      }
+
+      return { notes: notesWithFolder };
     } catch (error) {
-      throw error.response?.data || error
+      throw error.response?.data || error;
     }
   },
 
