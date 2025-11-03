@@ -388,14 +388,14 @@ export const requestAPI = {
   deleteNote: async (noteId, user) => {
     try {
       // Delete the note
-      const response = await api.post('/Request/deleteNote', {
+      const response = await api.post('/Notes/deleteNote', {
         noteId,
         user
       })
       
       // Also delete any associated summary
       try {
-        await api.post('/Request/deleteSummary', {
+        await api.post('/Summaries/deleteSummary', {
           user,
           itemId: noteId
         })
