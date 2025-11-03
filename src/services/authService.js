@@ -38,18 +38,9 @@ export const authService = {
     return localStorage.getItem('username') || localStorage.getItem('user')
   },
 
-  getRootFolderId: () => {
-    if (!localStorage.getItem('rootFolder')) {
-      getRootFolderId({user:localStorage.getItem('user')})
-        .then(rootFolderId => {
-          localStorage.setItem('rootFolder', rootFolderId)
-        })
-        .catch(error => {
-          console.error('Error getting root folder ID:', error)
-        })
-    } else {
-      return localStorage.getItem('rootFolder')
-    }
+  // Get root folder ID from localStorage
+  getRootFolder: () => {
+    return localStorage.getItem('rootFolder')
   },
 
   // Set root folder ID in localStorage

@@ -131,7 +131,7 @@ import FolderTree from './FolderTree.vue'
 import FolderView from './FolderView.vue'
 import NoteEditor from './NoteEditor.vue'
 import SearchBar from './SearchBar.vue'
-import { notesAPI, folderAPI, tagsAPI } from '../services/apiServices.js'
+import { notesAPI, folderAPI, tagsAPI, requestAPI } from '../services/apiServices.js'
 
 export default {
   name: 'Dashboard',
@@ -417,7 +417,21 @@ export default {
     const refreshFolders = async () => {
       console.log('🚀 [Dashboard.refreshFolders] Starting folder refresh');
       const user = authService.getUser()
-      const rootFolder = authService.getRootFolderId({user:user})
+      let rootFolder = authService.getRootFolder()
+      
+      // If no root folder in localStorage, try to fetch it
+      if (!rootFolder && user) {
+        try {
+          rootFolder = await requestAPI.getRootFolderId(user)
+          if (rootFolder) {
+            authService.setRootFolder(rootFolder)
+            console.log('✅ Root folder fetched and stored:', rootFolder)
+          }
+        } catch (error) {
+          console.error('❌ [Dashboard.refreshFolders] Failed to fetch root folder:', error)
+        }
+      }
+      
       console.log('🔍 [Dashboard.refreshFolders] User and root folder:', { user, rootFolder });
       
       if (!user || !rootFolder) {

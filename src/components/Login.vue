@@ -49,7 +49,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { authAPI } from '../services/apiServices.js'
+import { authAPI, requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -79,9 +79,20 @@ export default {
         if (authResponse.user) {
           const userId = authResponse.user
           
-          // The rootFolder will be handled by the request API response
-          // For now, just store the user - dashboard will handle folder initialization
+          // Store user and username first
           authService.setUserWithUsername(userId, form.username)
+          
+          // Fetch and store root folder
+          try {
+            const rootFolder = await requestAPI.getRootFolderId(userId)
+            if (rootFolder) {
+              authService.setRootFolder(rootFolder)
+              console.log('✅ Root folder stored:', rootFolder)
+            }
+          } catch (folderError) {
+            console.error('⚠️ Could not fetch root folder, dashboard will try again:', folderError)
+            // Continue anyway - dashboard can try to fetch it
+          }
           
           console.log('✅ Login successful - User:', userId)
           // Dispatch auth-changed event to update navbar

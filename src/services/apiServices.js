@@ -211,7 +211,7 @@ export const requestAPI = {
       const requestPayload = { user, folderId };
       console.log('🔍 [requestAPI.getFolderStructure] Request payload:', requestPayload);
       
-      const response = await api.post('/Request/getFolderStructure', requestPayload);
+      const response = await api.post('/Folder/getFolderStructure', requestPayload);
       console.log('✅ [requestAPI.getFolderStructure] API response received:', response.data);
       return response.data
     } catch (error) {
