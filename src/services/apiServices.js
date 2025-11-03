@@ -456,10 +456,10 @@ export const requestAPI = {
   // Tag management
   tagItem: async (user, itemId, tagLabel) => {
     try {
-      const response = await api.post('/Request/tagItem', {
+      const response = await api.post('/Tags/addTag', {
         user,
-        itemId,
-        tagLabel
+        item: itemId,
+        label: tagLabel
       })
       return response.data
     } catch (error) {
@@ -469,10 +469,10 @@ export const requestAPI = {
 
   untagItem: async (user, itemId, tagIdentifier) => {
     try {
-      const response = await api.post('/Request/untagItem', {
+      const response = await api.post('/Tags/removeTagFromItem', {
         user,
-        itemId,
-        tagId: tagIdentifier  // This can be either a tag ID or tag label
+        item: itemId,
+        tag: tagIdentifier  // This can be either a tag ID or tag label
       })
       return response.data
     } catch (error) {
@@ -482,9 +482,9 @@ export const requestAPI = {
 
   getItemTags: async (user, itemId) => {
     try {
-      const response = await api.post('/Request/getItemTags', {
+      const response = await api.post('/Tags/_getTagsForItem', {
         user,
-        itemId
+        item: itemId
       })
       return response.data
     } catch (error) {
