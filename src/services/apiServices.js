@@ -295,20 +295,66 @@ export const requestAPI = {
     }
   },
 
-  moveFolder: async (folder, newParent) => {
+  moveFolder: async (folderId, newParentId) => {
     console.log('🚀 [requestAPI.moveFolder] Starting moveFolder API call');
-    console.log('🔍 [requestAPI.moveFolder] Parameters:', { folder, newParent, user: localStorage.getItem('user') });
+    console.log('🔍 [requestAPI.moveFolder] Raw parameters:', { 
+      folderId: folderId, 
+      newParentId: newParentId, 
+      folderIdType: typeof folderId,
+      newParentIdType: typeof newParentId,
+      user: localStorage.getItem('user') 
+    });
+    
+    // Extract ID if parameter is an object
+    const resolvedFolderId = folderId && typeof folderId === 'object' ? folderId._id || folderId.id : folderId;
+    const resolvedNewParentId = newParentId && typeof newParentId === 'object' ? newParentId._id || newParentId.id : newParentId;
+    
+    console.log('🔍 [requestAPI.moveFolder] Resolved IDs:', { 
+      resolvedFolderId, 
+      resolvedNewParentId,
+      originalFolderId: folderId,
+      originalNewParentId: newParentId
+    });
+    
+    // Validate parameters - strict checks
+    if (resolvedFolderId === undefined || resolvedFolderId === null || resolvedFolderId === '') {
+      console.error('❌ [requestAPI.moveFolder] folderId is invalid:', resolvedFolderId, typeof resolvedFolderId);
+      throw new Error(`folderId is required (received: ${resolvedFolderId}, type: ${typeof resolvedFolderId})`)
+    }
+    if (resolvedNewParentId === undefined || resolvedNewParentId === null || resolvedNewParentId === '') {
+      console.error('❌ [requestAPI.moveFolder] newParentId is invalid:', resolvedNewParentId, typeof resolvedNewParentId);
+      throw new Error(`newParentId is required (received: ${resolvedNewParentId}, type: ${typeof resolvedNewParentId})`)
+    }
+    
+    // Ensure they are strings (not objects)
+    const folderIdStr = String(resolvedFolderId).trim();
+    const newParentIdStr = String(resolvedNewParentId).trim();
+    
+    if (!folderIdStr || !newParentIdStr) {
+      throw new Error('folderId and newParentId must be non-empty strings')
+    }
     
     try {
+      // Note: backend moveFolder doesn't use 'user' parameter - it validates ownership by checking folder owners match
+      // Use the string versions to ensure we're not sending undefined
       const requestPayload = {
-        folderId: folder,
-        newParentId: newParent,
-        user: localStorage.getItem('user')
+        folderId: folderIdStr,
+        newParentId: newParentIdStr
       };
-      console.log('🔍 [requestAPI.moveFolder] Request payload:', requestPayload);
+      console.log('🔍 [requestAPI.moveFolder] Request payload:', JSON.stringify(requestPayload, null, 2));
+      console.log('🔍 [requestAPI.moveFolder] Request payload keys:', Object.keys(requestPayload));
+      console.log('🔍 [requestAPI.moveFolder] Request payload values:', Object.values(requestPayload));
       
-      const response = await api.post('/Request/moveFolder', requestPayload);
-      console.log('✅ [requestAPI.moveFolder] API response received:', response.data);
+      const response = await api.post('/Folder/moveFolder', requestPayload);
+      console.log('🔍 [requestAPI.moveFolder] After API call - checking what was sent');
+      console.log('✅ [requestAPI.moveFolder] Full response:', response);
+      console.log('✅ [requestAPI.moveFolder] Response data:', response.data);
+      console.log('✅ [requestAPI.moveFolder] Response status:', response.status);
+      
+      if (response.data?.error) {
+        throw new Error(response.data.error)
+      }
+      
       return response.data
     } catch (error) {
       console.error('❌ [requestAPI.moveFolder] API error:', error);
