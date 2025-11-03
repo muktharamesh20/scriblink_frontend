@@ -518,9 +518,9 @@ export const requestAPI = {
   // Move note to folder
   moveNote: async (noteId, folderId, user) => {
     try {
-      const response = await api.post('/Request/moveNote', {
-        noteId,
-        folderId,
+      const response = await api.post('/Folder/insertItem', {
+        item: noteId,
+        folder:folderId,
         user
       })
       return response.data
