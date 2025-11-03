@@ -25,10 +25,6 @@ export const notesAPI = {
     return requestAPI.getUserNotes(user, folderId, tagLabel)
   },
 
-  updateNote: async (noteId, content, title) => {
-    return requestAPI.updateNote(noteId, title, content, localStorage.getItem('user'))
-  },
-
   updateContent: async (noteId, content) => {
     return requestAPI.updateContent(noteId, content, localStorage.getItem('user'))
   },
@@ -391,25 +387,11 @@ export const requestAPI = {
     }
   },
 
-  updateNote: async (noteId, title, content, user) => {
-    try {
-      const response = await api.post('/Request/updateNote', {
-        noteId,
-        title,
-        content,
-        user
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
   updateContent: async (noteId, content, user) => {
     try {
-      const response = await api.post('/Request/updateNote', {
+      const response = await api.post('/Notes/updateContent', {
         noteId,
-        content,
+        newContent: content,
         user
       })
       return response.data
@@ -420,9 +402,9 @@ export const requestAPI = {
 
   setTitle: async (noteId, title, user) => {
     try {
-      const response = await api.post('/Request/updateNote', {
+      const response = await api.post('/Notes/setTitle', {
         noteId,
-        title,
+        newTitle: title,
         user
       })
       return response.data
