@@ -188,7 +188,7 @@ export default {
 
       console.log('🔄 Calling folderAPI.deleteFolder with:', { folderId: folder._id, user })
       try {
-        const result = await folderAPI.deleteFolder(folder._id, user)
+        const result = await folderAPI.deleteFolder(folder._id, user, authService.getAccessToken())
         console.log('✅ Folder deleted successfully:', result)
         emit('folder-deleted')
       } catch (error) {
@@ -214,7 +214,7 @@ export default {
 
       console.log('🔄 Calling notesAPI.deleteNote with:', { noteId: note._id, user })
       try {
-        const result = await notesAPI.deleteNote(note._id)
+        const result = await notesAPI.deleteNote(note._id, authService.getAccessToken())
         console.log('✅ Note deleted successfully:', result)
         emit('note-deleted')
       } catch (error) {
@@ -363,7 +363,7 @@ export default {
         
         try {
           console.log('🔄 [FolderTreeNode.handleDrop] Calling folderAPI.moveFolder');
-          const result = await folderAPI.moveFolder(data.id, props.folder._id)
+          const result = await folderAPI.moveFolder(data.id, props.folder._id, authService.getAccessToken())
           console.log('✅ [FolderTreeNode.handleDrop] Folder moved successfully:', result)
           console.log('🔄 [FolderTreeNode.handleDrop] Emitting folder-moved event');
           emit('folder-moved')
@@ -390,7 +390,7 @@ export default {
         
         try {
           console.log('🔄 [FolderTreeNode.handleDrop] Calling folderAPI.moveNote');
-          const result = await folderAPI.moveNote(data.id, props.folder._id, user)
+          const result = await folderAPI.moveNote(data.id, props.folder._id, user, authService.getAccessToken())
           console.log('✅ [FolderTreeNode.handleDrop] Note moved successfully:', result)
           emit('note-moved')
         } catch (error) {

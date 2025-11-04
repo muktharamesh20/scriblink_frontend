@@ -76,15 +76,15 @@ export default {
       try {
         const authResponse = await authAPI.authenticate(form.username, form.password)
         
-        if (authResponse.user) {
-          const userId = authResponse.user
+        if (authResponse.accessToken && authResponse.refreshToken && authResponse.user) {
+          const { accessToken, refreshToken, user: userId } = authResponse
           
-          // Store user and username first
-          authService.setUserWithUsername(userId, form.username)
+          // Store tokens and user data
+          authService.setTokens(accessToken, refreshToken, userId, form.username)
           
           // Fetch and store root folder
           try {
-            const rootFolder = await requestAPI.getRootFolderId(userId)
+            const rootFolder = await requestAPI.getRootFolderId(userId, accessToken)
             if (rootFolder) {
               authService.setRootFolder(rootFolder)
               console.log('✅ Root folder stored:', rootFolder)

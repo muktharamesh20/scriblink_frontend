@@ -132,7 +132,7 @@ export default {
 
       try {
         console.log('🔍 [SummaryPopup] Loading summary for note:', props.note._id)
-        const response = await summariesAPI.getSummary(user, props.note._id)
+        const response = await summariesAPI.getSummary(user, props.note._id, authService.getAccessToken())
         console.log('🔍 [SummaryPopup] Summary response:', response)
         
         if (response.summary) {
@@ -173,7 +173,7 @@ export default {
 
       try {
         console.log('Generating summary for note:', props.note._id)
-        const response = await summariesAPI.generateSummary(user, props.note._id)
+        const response = await summariesAPI.generateSummary(user, props.note._id, authService.getAccessToken())
         
         if (response.summary) {
           summary.value = response.summary
@@ -219,7 +219,7 @@ export default {
       error.value = ''
 
       try {
-        await summariesAPI.setSummary(user, props.note._id, editingSummary.value)
+        await summariesAPI.setSummary(user, props.note._id, editingSummary.value, authService.getAccessToken())
         summary.value = editingSummary.value
         summaryDate.value = new Date()
         isEditing.value = false

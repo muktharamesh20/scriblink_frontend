@@ -1,6 +1,31 @@
 // Authentication service using localStorage
 export const authService = {
-  // Store user in localStorage
+  // Store tokens and user data
+  setTokens: (accessToken, refreshToken, userId, username) => {
+    localStorage.setItem('accessToken', accessToken)
+    localStorage.setItem('refreshToken', refreshToken)
+    localStorage.setItem('user', userId)
+    if (username) {
+      localStorage.setItem('username', username)
+    }
+  },
+
+  // Update access token (used after refresh)
+  setAccessToken: (accessToken) => {
+    localStorage.setItem('accessToken', accessToken)
+  },
+
+  // Get access token
+  getAccessToken: () => {
+    return localStorage.getItem('accessToken')
+  },
+
+  // Get refresh token
+  getRefreshToken: () => {
+    return localStorage.getItem('refreshToken')
+  },
+
+  // Store user in localStorage (backward compatibility)
   setUser: (user) => {
     localStorage.setItem('user', user)
   },
@@ -48,9 +73,9 @@ export const authService = {
     localStorage.setItem('rootFolder', rootFolder)
   },
 
-  // Check if user is authenticated
+  // Check if user is authenticated (has tokens)
   isAuthenticated: () => {
-    return !!localStorage.getItem('user')
+    return !!(localStorage.getItem('accessToken') && localStorage.getItem('refreshToken'))
   },
 
   // Remove user from localStorage (logout)
@@ -58,6 +83,8 @@ export const authService = {
     localStorage.removeItem('user')
     localStorage.removeItem('username')
     localStorage.removeItem('rootFolder')
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
   },
 
   // Clear all localStorage data

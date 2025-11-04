@@ -116,7 +116,7 @@ export default {
 
       try {
         console.log('🔍 [SummaryPanel] Loading summary for note:', props.note._id, 'user:', user)
-        const response = await summariesAPI.getSummary(user, props.note._id)
+        const response = await summariesAPI.getSummary(user, props.note._id, authService.getAccessToken())
         console.log('🔍 [SummaryPanel] Summary response:', response)
         if (response.summary) {
           summary.value = response.summary
@@ -148,7 +148,7 @@ export default {
 
       try {
         console.log('Generating summary for note:', props.note._id)
-        const response = await summariesAPI.generateSummary(user, props.note._id)
+        const response = await summariesAPI.generateSummary(user, props.note._id, authService.getAccessToken())
         
         if (response.summary) {
           summary.value = response.summary
@@ -190,7 +190,7 @@ export default {
       error.value = ''
 
       try {
-        await summariesAPI.setSummary(user, props.note._id, editingSummary.value)
+        await summariesAPI.setSummary(user, props.note._id, editingSummary.value, authService.getAccessToken())
         summary.value = editingSummary.value
         lastGenerated.value = new Date()
         initialContentLength.value = props.note.content.length

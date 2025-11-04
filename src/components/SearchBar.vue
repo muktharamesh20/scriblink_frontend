@@ -84,14 +84,14 @@ export default {
         console.log('🔍 [SearchBar] Loading search data...')
         
         // Load all notes
-        const userNotes = await notesAPI.getUserNotes(user, undefined)
+        const userNotes = await notesAPI.getUserNotes(user, undefined, null, authService.getAccessToken())
         allNotes.value = userNotes.notes || []
         console.log('🔍 [SearchBar] Loaded notes:', allNotes.value.length)
 
         // Load summaries for all notes
         const summaryPromises = allNotes.value.map(async (note) => {
           try {
-            const summaryResponse = await summariesAPI.getSummary(user, note._id)
+            const summaryResponse = await summariesAPI.getSummary(user, note._id, authService.getAccessToken())
             if (summaryResponse.summary) {
               allSummaries.value.set(note._id, summaryResponse.summary)
             }
