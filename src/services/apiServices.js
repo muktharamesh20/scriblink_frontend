@@ -314,16 +314,14 @@ export const requestAPI = {
   },
 
   updateContent: async (noteId, content, user) => {
-    try {
+    return authHandler.wrap(async () => {
       const response = await api.post('/Notes/updateContent', {
         noteId,
         newContent: content,
         user
       })
       return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   setTitle: async (noteId, title, user) => {
