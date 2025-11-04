@@ -633,10 +633,10 @@ export const requestAPI = {
 
   getUserTags: async (user) => {
     try {
-      const response = await api.post('/Request/getUserTags', {
+      const response = await api.post('/Tags/_getAllUserTags', {
         user
       })
-      return response.data
+      return { tags: response.data.map((tag) => tag.label) }
     } catch (error) {
       throw error.response?.data || error
     }
