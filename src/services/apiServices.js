@@ -393,16 +393,13 @@ export const requestAPI = {
   },
 
   untagItem: async (user, itemId, tagIdentifier) => {
-    try {
-      const response = await api.post('/Tags/removeTagFromItem', {
+    return authHandler.wrap(async () => { 
+      return await api.post('/Tags/removeTagFromItem', {
         user,
         item: itemId,
-        tag: tagIdentifier  // This can be either a tag ID or tag label
+        tag: tagIdentifier
       })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   getItemTags: async (user, itemId) => {
