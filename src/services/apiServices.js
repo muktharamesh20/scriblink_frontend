@@ -64,28 +64,9 @@ export const folderAPI = {
   moveNote: async (noteId, folderId, user) => {
     return requestAPI.moveNote(noteId, folderId, user)
   },
-
-  // These internal methods should not be used directly - use requestAPI methods instead
-  addItem: async (folderId, itemId) => {
-    console.warn('⚠️ folderAPI.addItem is deprecated - folder operations are handled internally')
-    throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
-  },
-
-  removeItem: async (folderId, itemId) => {
-    console.warn('⚠️ folderAPI.removeItem is deprecated - folder operations are handled internally')
-    throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
-  },
-
-  // Internal methods - should not be called directly from frontend
-  getFolderChildren: async (folderId) => {
-    console.warn('⚠️ folderAPI.getFolderChildren is deprecated - use requestAPI.getFolderStructure instead')
-    throw new Error('Method deprecated - use requestAPI.getFolderStructure instead')
-  },
 }
 
-// Tags API calls (DEPRECATED - use requestAPI instead)
 export const tagsAPI = {
-  // All these methods now route through requestAPI
   addTag: async (user, itemId, tagLabel) => {
     return requestAPI.tagItem(user, itemId, tagLabel)
   },
@@ -103,9 +84,7 @@ export const tagsAPI = {
   }
 }
 
-// Summaries API calls (DEPRECATED - use requestAPI instead)
 export const summariesAPI = {
-  // All these methods now route through requestAPI
   setSummary: async (user, itemId, summary) => {
     return requestAPI.setSummary(user, itemId, summary)
   },
@@ -124,9 +103,7 @@ export const summariesAPI = {
 }
 
 
-// Export requestAPI
 export const requestAPI = {
-  // User management
   registerUser: async (username, password) => {
     try {
       const response = await api.post('/PasswordAuth/register', {
@@ -163,7 +140,6 @@ export const requestAPI = {
     }
   },
 
-  // Folder management
   getFolderStructure: async (user, folderId = undefined) => {  
     try {
       const requestPayload = { user, folderId };
@@ -212,7 +188,6 @@ export const requestAPI = {
     })
   },
 
-  // Note management
   createNote: async (user, content, folder, title) => {
     return authHandler.wrap(async () => {
       return await api.post('/Notes/createNote', {
@@ -468,8 +443,6 @@ export const requestAPI = {
       if (noteDetails.error) {
         throw new Error(noteDetails.error)
       }
-
-      // console.log('🔍 [generateSummary] Note details:', noteDetails)
 
       // Extract content from note details - response should be NoteStructure with content directly
       const noteContent = noteDetails.content
