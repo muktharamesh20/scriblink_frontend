@@ -388,15 +388,13 @@ export const requestAPI = {
 
   // Summary management
   setSummary: async (user, itemId, summary) => {
-    try {
+    return authHandler.wrap(async () =>  {
       const response = await api.post('/Summaries/setSummary', {
         item: itemId,
         summary
       })
       return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   getSummary: async (user, itemId) => {
