@@ -106,7 +106,7 @@
                 <div class="note-title">{{ note.title }}</div>
                 <div class="note-meta">
                   <span class="note-date">{{ formatRelativeTime(note.last_modified) }}</span>
-                  <span v-if="note.folderId && note.folderId !== rootFolderId" class="note-folder">{{ getFolderName(note.folderId) }}</span>
+                  <span v-if="note.folderId && note.folderId !== rootFolderId && folderExists(note.folderId)" class="note-folder">{{ getFolderName(note.folderId) }}</span>
                 </div>
                 <button 
                   @click.stop="removeTagFromNote(tagGroup.tag, note)"
@@ -229,11 +229,21 @@ export default {
       return tagsOverview.value
         .map(tagGroup => ({
           ...tagGroup,
-          notes: tagGroup.notes.sort((a, b) => {
-            // Sort notes by last_modified (most recent first)
-            return new Date(b.last_modified) - new Date(a.last_modified)
-          })
+          notes: tagGroup.notes
+            // Filter out notes that don't belong to any folder (folder doesn't exist)
+            .filter(note => {
+              if (!note.folderId || note.folderId === rootFolderId.value) {
+                return true // Show root notes
+              }
+              // Only show notes if their folder actually exists
+              return folderExists(note.folderId)
+            })
+            .sort((a, b) => {
+              // Sort notes by last_modified (most recent first)
+              return new Date(b.last_modified) - new Date(a.last_modified)
+            })
         }))
+        .filter(tagGroup => tagGroup.notes.length > 0) // Remove empty tag groups
         .sort((a, b) => {
           const aPriority = priorityOrder[a.tag] || 999
           const bPriority = priorityOrder[b.tag] || 999
@@ -386,6 +396,29 @@ export default {
       
       const folderName = findFolderRecursively(folders.value)
       return folderName || 'Unknown Folder'
+    }
+
+    // Helper function to check if a folder exists
+    const folderExists = (folderId) => {
+      if (!folderId || folderId === rootFolderId.value) {
+        return true // Root folder always exists
+      }
+      
+      // Search through all folders recursively
+      const findFolderRecursively = (folderList) => {
+        for (const folder of folderList) {
+          if (folder._id === folderId) {
+            return true
+          }
+          // Search in nested folders
+          if (folder.children && folder.children.length > 0) {
+            if (findFolderRecursively(folder.children)) return true
+          }
+        }
+        return false
+      }
+      
+      return findFolderRecursively(folders.value)
     }
 
     const initializeUser = async () => {
@@ -764,7 +797,8 @@ export default {
       rootFolderId,
       removeTagFromNote,
       formatRelativeTime,
-      getFolderName
+      getFolderName,
+      folderExists
     }
   }
 }
