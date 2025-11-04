@@ -12,19 +12,6 @@ const api = axios.create({
   }
 })
 
-let isRefreshing = false
-let failedQueue = []
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error)
-    } else {
-      prom.resolve(token)
-    }
-  })
-  failedQueue = []
-}
 
 // Request interceptor to add auth token to headers
 api.interceptors.request.use(
@@ -33,10 +20,16 @@ api.interceptors.request.use(
     console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${fullUrl}`)
     console.log('📦 Request Data:', config.data)
     
-    // Add access token to Authorization header
+    // Add access token to Authorization header AND body
     const accessToken = localStorage.getItem('accessToken')
     if (accessToken && !config.url?.includes('PasswordAuth')) {
       config.headers.Authorization = `Bearer ${accessToken}`
+      
+      // Also add authToken to request body if it's a POST request
+      if (config.method === 'post' && config.data && typeof config.data === 'object') {
+        config.data.authToken = accessToken
+        console.log('🔑 Adding authToken to request body:', accessToken.substring(0, 20) + '...')
+      }
     }
     
     // Still add user to body for backward compatibility (if not already present)
@@ -53,65 +46,13 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle token refresh
+// Response interceptor
 api.interceptors.response.use(
   (response) => {
     console.log(`✅ API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`)
     return response
   },
-  async (error) => {
-    const originalRequest = error.config
-    
-    // If 401 and not already retrying, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('PasswordAuth')) {
-      if (isRefreshing) {
-        // If already refreshing, queue this request
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
-        })
-          .then(token => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            return api(originalRequest)
-          })
-          .catch(err => {
-            return Promise.reject(err)
-          })
-      }
-
-      originalRequest._retry = true
-      isRefreshing = true
-
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (!refreshToken) {
-        processQueue(error, null)
-        isRefreshing = false
-        authService.removeUser()
-        window.location.href = '/login'
-        return Promise.reject(error)
-      }
-
-      try {
-        const response = await axios.post('/api/PasswordAuth/refresh', {
-          refreshToken
-        })
-        
-        const { accessToken } = response.data
-        localStorage.setItem('accessToken', accessToken)
-        
-        processQueue(null, accessToken)
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
-        isRefreshing = false
-        
-        return api(originalRequest)
-      } catch (refreshError) {
-        processQueue(refreshError, null)
-        isRefreshing = false
-        authService.removeUser()
-        window.location.href = '/login'
-        return Promise.reject(refreshError)
-      }
-    }
-
+  (error) => {
     console.error(`❌ API Error: ${error.response?.status || 'Network Error'} ${error.config?.method?.toUpperCase()} ${error.config?.url}`)
     return Promise.reject(error)
   }

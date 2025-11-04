@@ -76,11 +76,11 @@ export default {
       try {
         const authResponse = await authAPI.authenticate(form.username, form.password)
         
-        if (authResponse.accessToken && authResponse.refreshToken && authResponse.user) {
-          const { accessToken, refreshToken, user: userId } = authResponse
+        if (authResponse.accessToken && authResponse.user) {
+          const { accessToken, user: userId } = authResponse
           
           // Store tokens and user data
-          authService.setTokens(accessToken, refreshToken, userId, form.username)
+          authService.setTokens(accessToken, userId, form.username)
           
           // Fetch and store root folder
           try {
