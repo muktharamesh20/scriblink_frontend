@@ -342,29 +342,6 @@ export const requestAPI = {
         user
       })
     })
-    // try {
-    //   // Delete the note
-    //   const response = await api.post('/Notes/deleteNote', {
-    //     noteId,
-    //     user
-    //   })
-      
-    //   // // Also delete any associated summary
-    //   // try {
-    //   //   await api.post('/Summaries/deleteSummary', {
-    //   //     user,
-    //   //     itemId: noteId
-    //   //   })
-    //   //   // console.log('✅ [deleteNote] Summary deleted for note:', noteId)
-    //   // } catch (summaryError) {
-    //   //   // Don't fail the note deletion if summary deletion fails
-    //   //   // console.log('⚠️ [deleteNote] Could not delete summary for note:', noteId, summaryError)
-    //   // }
-      
-    //   return response.data
-    // } catch (error) {
-    //   throw error.response?.data || error
-    // }
   },
 
   // Move note to folder
@@ -380,16 +357,13 @@ export const requestAPI = {
 
   // Tag management
   tagItem: async (user, itemId, tagLabel) => {
-    try {
-      const response = await api.post('/Tags/addTag', {
+    return authHandler.wrap(async () => {
+      return await api.post('/Tags/addTag', {
         user,
         item: itemId,
         label: tagLabel
       })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   untagItem: async (user, itemId, tagIdentifier) => {
