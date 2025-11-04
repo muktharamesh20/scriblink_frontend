@@ -73,6 +73,43 @@ export const authService = {
     return !!localStorage.getItem('accessToken')
   },
 
+  // Check if JWT token is expired
+  isTokenExpired: (token) => {
+    if (!token) return true
+    
+    try {
+      // JWT tokens have 3 parts separated by dots: header.payload.signature
+      const parts = token.split('.')
+      if (parts.length !== 3) return true
+      
+      // Decode the payload (second part)
+      const payload = JSON.parse(atob(parts[1]))
+      
+      // Check if token has expiration claim
+      if (!payload.exp) return false // No expiration claim, assume valid
+      
+      // Compare expiration time (seconds) with current time (milliseconds)
+      const expirationTime = payload.exp * 1000
+      const currentTime = Date.now()
+      
+      return currentTime >= expirationTime
+    } catch (error) {
+      console.error('❌ Error checking token expiration:', error)
+      return true // If we can't parse, assume expired
+    }
+  },
+
+  // Check if stored token is expired and remove if so
+  checkAndRemoveExpiredToken: () => {
+    const token = localStorage.getItem('accessToken')
+    if (token && authService.isTokenExpired(token)) {
+      console.log('⚠️ Access token expired - removing from storage')
+      authService.removeUser()
+      return true
+    }
+    return false
+  },
+
   // Remove user from localStorage (logout)
   removeUser: () => {
     localStorage.removeItem('user')

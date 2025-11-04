@@ -46,9 +46,20 @@ export default {
       currentThemeIndex.value = themes.indexOf(savedTheme)
     }
     
-    // Apply theme on mount
+    // Apply theme on mount, check token expiration, and set up event listeners
     onMounted(() => {
       document.documentElement.setAttribute('data-theme', themes[currentThemeIndex.value])
+      
+      // Check if token is expired on app load
+      if (authService.checkAndRemoveExpiredToken()) {
+        console.log('⚠️ Token expired on app load - redirecting to login')
+        router.push('/login')
+        updateAuthState()
+      }
+      
+      window.addEventListener('storage', handleStorageChange)
+      // Also listen for custom events for same-tab changes
+      window.addEventListener('auth-changed', updateAuthState)
     })
     
     const cycleTheme = () => {
@@ -83,12 +94,6 @@ export default {
         updateAuthState()
       }
     }
-    
-    onMounted(() => {
-      window.addEventListener('storage', handleStorageChange)
-      // Also listen for custom events for same-tab changes
-      window.addEventListener('auth-changed', updateAuthState)
-    })
     
     onUnmounted(() => {
       window.removeEventListener('storage', handleStorageChange)

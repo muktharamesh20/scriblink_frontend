@@ -112,6 +112,13 @@ export const authHandler = {
    * @returns {Promise} - Promise that resolves with response data or rejects with error
    */
   wrap: async (apiCall) => {
+    // Check if token is expired before making the request
+    if (authService.checkAndRemoveExpiredToken()) {
+      console.log('❌ Token expired - redirecting to login')
+      window.location.href = '/login'
+      throw { error: 'Token expired' }
+    }
+
     try {
       const response = await apiCall()
       console.log('🔍 authHandler.wrap - response received:', {
