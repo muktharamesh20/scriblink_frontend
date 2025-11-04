@@ -183,7 +183,7 @@ export default {
         console.log('📂 Parent folder ID:', parentFolderId)
         console.log('🌐 Making API call...')
         
-        await folderAPI.createFolder(user, newFolderName.value.trim(), parentFolderId, authService.getAccessToken())
+        await folderAPI.createFolder(user, newFolderName.value.trim(), parentFolderId)
         console.log('✅ Folder created successfully')
         emit('folder-created')
         cancelCreate()
@@ -385,7 +385,7 @@ export default {
         
         try {
           console.log('🔄 [FolderTree.handleDrop] Calling folderAPI.moveFolder');
-          const result = await folderAPI.moveFolder(data.id, rootFolder, authService.getAccessToken())
+          const result = await folderAPI.moveFolder(data.id, rootFolder)
           console.log('✅ [FolderTree.handleDrop] Folder moved to root successfully:', result)
           console.log('🔄 [FolderTree.handleDrop] Emitting folder-moved event');
           emit('folder-moved')

@@ -722,7 +722,7 @@ export default {
       try {
         // Create folder using Request API
         const parentFolderId = currentFolder.value?._id || rootFolder
-        await folderAPI.createFolder(user, title, parentFolderId, authService.getAccessToken())
+        await folderAPI.createFolder(user, title, parentFolderId)
         await refreshFolders()
       } catch (error) {
         console.error('Error creating folder:', error)

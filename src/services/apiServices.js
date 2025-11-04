@@ -18,51 +18,51 @@ export const authAPI = {
 // Notes API calls (DEPRECATED - use requestAPI instead)
 export const notesAPI = {
   // All these methods now route through requestAPI
-  createNote: async (user, content, folder, title, authToken) => {
-    return requestAPI.createNote(user, content, folder, title, authToken)
+  createNote: async (user, content, folder, title) => {
+    return requestAPI.createNote(user, content, folder, title)
   },
 
-  getUserNotes: async (user, folderId = undefined, tagLabel = null, authToken) => {
-    return requestAPI.getUserNotes(user, folderId, tagLabel, authToken)
+  getUserNotes: async (user, folderId = undefined, tagLabel = null) => {
+    return requestAPI.getUserNotes(user, folderId, tagLabel)
   },
 
-  updateContent: async (noteId, content, authToken) => {
-    return requestAPI.updateContent(noteId, content, localStorage.getItem('user'), authToken)
+  updateContent: async (noteId, content) => {
+    return requestAPI.updateContent(noteId, content, localStorage.getItem('user'))
   },
 
-  setTitle: async (noteId, user, title, authToken) => {
-    return requestAPI.setTitle(noteId, title, user, authToken)
+  setTitle: async (noteId, user, title) => {
+    return requestAPI.setTitle(noteId, title, user)
   },
 
-  deleteNote: async (noteId, authToken) => {
-    return requestAPI.deleteNote(noteId, localStorage.getItem('user'), authToken)
+  deleteNote: async (noteId) => {
+    return requestAPI.deleteNote(noteId, localStorage.getItem('user'))
   }
 }
 
 // Folder API calls (DEPRECATED - use requestAPI instead)
 export const folderAPI = {
   getRootFolder: async (authToken) => {
-    return requestAPI.getRootFolderId(localStorage.getItem('user'), authToken)
+    return requestAPI.getRootFolderId(localStorage.getItem('user'))
   },
 
-  getFolderStructure: async (user, folderId = undefined, authToken) => {
-    return requestAPI.getFolderStructure(user, folderId, authToken)
+  getFolderStructure: async (user, folderId = undefined) => {
+    return requestAPI.getFolderStructure(user, folderId)
   },
 
-  createFolder: async (user, title, parent, authToken) => {
-    return requestAPI.createFolder(user, title, parent, authToken)
+  createFolder: async (user, title, parent) => {
+    return requestAPI.createFolder(user, title, parent)
   },
 
-  moveFolder: async (folder, newParent, authToken) => {
-    return requestAPI.moveFolder(folder, newParent, authToken)
+  moveFolder: async (folder, newParent) => {
+    return requestAPI.moveFolder(folder, newParent)
   },
 
-  deleteFolder: async (folderId, user, authToken) => {
-    return requestAPI.deleteFolder(folderId, user || localStorage.getItem('user'), authToken)
+  deleteFolder: async (folderId, user) => {
+    return requestAPI.deleteFolder(folderId, user || localStorage.getItem('user'))
   },
 
-  moveNote: async (noteId, folderId, user, authToken) => {
-    return requestAPI.moveNote(noteId, folderId, user, authToken)
+  moveNote: async (noteId, folderId, user) => {
+    return requestAPI.moveNote(noteId, folderId, user)
   },
 
   // These internal methods should not be used directly - use requestAPI methods instead
@@ -106,44 +106,44 @@ export const folderAPI = {
 // Tags API calls (DEPRECATED - use requestAPI instead)
 export const tagsAPI = {
   // All these methods now route through requestAPI
-  addTag: async (user, itemId, tagLabel, authToken) => {
-    return requestAPI.tagItem(user, itemId, tagLabel, authToken)
+  addTag: async (user, itemId, tagLabel) => {
+    return requestAPI.tagItem(user, itemId, tagLabel)
   },
 
-  removeTag: async (user, itemId, tagLabel, authToken) => {
-    return requestAPI.untagItem(user, itemId, tagLabel, authToken)
+  removeTag: async (user, itemId, tagLabel) => {
+    return requestAPI.untagItem(user, itemId, tagLabel)
   },
 
-  getItemTags: async (user, itemId, authToken) => {
-    return requestAPI.getItemTags(user, itemId, authToken)
+  getItemTags: async (user, itemId) => {
+    return requestAPI.getItemTags(user, itemId)
   },
 
-  getUserTags: async (user, authToken) => {
-    return requestAPI.getUserTags(user, authToken)
+  getUserTags: async (user) => {
+    return requestAPI.getUserTags(user)
   }
 }
 
 // Summaries API calls (DEPRECATED - use requestAPI instead)
 export const summariesAPI = {
   // All these methods now route through requestAPI
-  setSummary: async (user, itemId, summary, authToken) => {
-    return requestAPI.setSummary(user, itemId, summary, authToken)
+  setSummary: async (user, itemId, summary) => {
+    return requestAPI.setSummary(user, itemId, summary)
   },
 
-  getSummary: async (user, itemId, authToken) => {
-    return requestAPI.getSummary(user, itemId, authToken)
+  getSummary: async (user, itemId) => {
+    return requestAPI.getSummary(user, itemId)
   },
 
-  deleteSummary: async (user, itemId, authToken) => {
-    return requestAPI.deleteSummary(user, itemId, authToken)
+  deleteSummary: async (user, itemId) => {
+    return requestAPI.deleteSummary(user, itemId)
   },
 
-  getUserSummaries: async (user, authToken) => {
-    return requestAPI.getUserSummaries(user, authToken)
+  getUserSummaries: async (user) => {
+    return requestAPI.getUserSummaries(user)
   },
 
-  generateSummary: async (user, noteId, authToken) => {
-    return requestAPI.generateSummary(user, noteId, authToken)
+  generateSummary: async (user, noteId) => {
+    return requestAPI.generateSummary(user, noteId)
   }
 }
 
@@ -151,7 +151,7 @@ export const summariesAPI = {
 // Export requestAPI
 export const requestAPI = {
   // User management
-  registerUser: async (username, password, authToken) => {
+  registerUser: async (username, password) => {
     try {
       const response = await api.post('/PasswordAuth/register', {
         username,
@@ -163,7 +163,7 @@ export const requestAPI = {
     }
   },
 
-  loginUser: async (username, password, authToken) => {
+  loginUser: async (username, password) => {
     try {
       const requestPayload = {
         username,
@@ -178,7 +178,7 @@ export const requestAPI = {
   },
 
 
-  getRootFolderId: async (user, authToken) => {
+  getRootFolderId: async (user) => {
     try {
       const response = await api.post('/Folder/_getRootFolderId', { user })
       return response.data.rootFolder
@@ -188,7 +188,7 @@ export const requestAPI = {
   },
 
   // Folder management
-  getFolderStructure: async (user, folderId = undefined, authToken) => {
+  getFolderStructure: async (user, folderId = undefined) => {
     // console.log('🚀 [requestAPI.getFolderStructure] Starting getFolderStructure API call');
     // console.log('🔍 [requestAPI.getFolderStructure] Parameters:', { user, folderId });
     
@@ -206,7 +206,7 @@ export const requestAPI = {
     }
   },
 
-  createFolder: async (user, title, parentFolderId, authToken) => {
+  createFolder: async (user, title, parentFolderId) => {
     return authHandler.wrap(async () => {
       return await api.post('/Folder/createFolder', {
         user,
@@ -216,7 +216,7 @@ export const requestAPI = {
     })
   },
 
-  deleteFolder: async (folderId, user, authToken) => {
+  deleteFolder: async (folderId, user) => {
     try {
       // Ensure folderId is a string - handle various input formats
       // console.log('🔍 [deleteFolder] Input folderId:', folderId, 'type:', typeof folderId)
@@ -328,75 +328,38 @@ export const requestAPI = {
     }
   },
 
-  moveFolder: async (folderId, newParentId, authToken) => {
-    // console.log('🚀 [requestAPI.moveFolder] Starting moveFolder API call');
-    
-    // Extract ID if parameter is an object
-    const resolvedFolderId = folderId && typeof folderId === 'object' ? folderId._id || folderId.id : folderId;
-    const resolvedNewParentId = newParentId && typeof newParentId === 'object' ? newParentId._id || newParentId.id : newParentId;
-
-    
-    // Validate parameters - strict checks
-    if (resolvedFolderId === undefined || resolvedFolderId === null || resolvedFolderId === '') {
-      console.error('❌ [requestAPI.moveFolder] folderId is invalid:', resolvedFolderId, typeof resolvedFolderId);
-      throw new Error(`folderId is required (received: ${resolvedFolderId}, type: ${typeof resolvedFolderId})`)
-    }
-    if (resolvedNewParentId === undefined || resolvedNewParentId === null || resolvedNewParentId === '') {
-      console.error('❌ [requestAPI.moveFolder] newParentId is invalid:', resolvedNewParentId, typeof resolvedNewParentId);
-      throw new Error(`newParentId is required (received: ${resolvedNewParentId}, type: ${typeof resolvedNewParentId})`)
-    }
-    
-    // Ensure they are strings (not objects)
-    const folderIdStr = String(resolvedFolderId).trim();
-    const newParentIdStr = String(resolvedNewParentId).trim();
-    
-    if (!folderIdStr || !newParentIdStr) {
-      throw new Error('folderId and newParentId must be non-empty strings')
-    }
-    
-    try {
-      // Note: backend moveFolder doesn't use 'user' parameter - it validates ownership by checking folder owners match
-      // Use the string versions to ensure we're not sending undefined
-      const requestPayload = {
-        folderId: folderIdStr,
-        newParentId: newParentIdStr
-      };
-      // console.log('🔍 [requestAPI.moveFolder] Request payload:', JSON.stringify(requestPayload, null, 2));
-      // console.log('🔍 [requestAPI.moveFolder] Request payload keys:', Object.keys(requestPayload));
-      // console.log('🔍 [requestAPI.moveFolder] Request payload values:', Object.values(requestPayload));
+  moveFolder: async (folderId, newParentId) => {
+    return authHandler.wrap(async () => {
+      // Ensure they are strings (not objects)
+      const folderIdStr = String(folderId).trim();
+      const newParentIdStr = String(newParentId).trim();
       
-      const response = await api.post('/Folder/moveFolder', requestPayload);
-      // console.log('🔍 [requestAPI.moveFolder] After API call - checking what was sent');
-      // console.log('✅ [requestAPI.moveFolder] Full response:', response);
-      // console.log('✅ [requestAPI.moveFolder] Response data:', response.data);
-      // console.log('✅ [requestAPI.moveFolder] Response status:', response.status);
-      
-      if (response.data?.error) {
-        throw new Error(response.data.error)
+      if (!folderIdStr || !newParentIdStr) {
+        throw { error: 'folderId and newParentId must be non-empty strings' }
       }
       
-      return response.data
-    } catch (error) {
-      console.error('❌ [requestAPI.moveFolder] API error:', error);
-      console.error('❌ [requestAPI.moveFolder] Error response:', error.response?.data);
-      throw error.response?.data || error
-    }
+      // Note: backend moveFolder doesn't use 'user' parameter - it validates ownership by checking folder owners match
+      // The interceptor will add user and authToken automatically
+      return await api.post('/Folder/moveFolder', {
+        folderId: folderIdStr,
+        newParentId: newParentIdStr
+      })
+    })
   },
 
   // Note management
-  createNote: async (user, content, folder, title, authToken) => {
+  createNote: async (user, content, folder, title) => {
     return authHandler.wrap(async () => {
       return await api.post('/Notes/createNote', {
         user,
         content,
         folder,
         title,
-        authToken
       })
     })
   },
 
-  getUserNotes: async (user, folderId = undefined, tagLabel = null, authToken) => {
+  getUserNotes: async (user, folderId = undefined, tagLabel = null) => {
     try {
       // 1. Get all notes for the user
       const notesResult = await api.post('/Notes/getNotesByUser', {
@@ -485,7 +448,7 @@ export const requestAPI = {
     }
   },
 
-  updateContent: async (noteId, content, user, authToken) => {
+  updateContent: async (noteId, content, user) => {
     try {
       const response = await api.post('/Notes/updateContent', {
         noteId,
@@ -498,7 +461,7 @@ export const requestAPI = {
     }
   },
 
-  setTitle: async (noteId, title, user, authToken) => {
+  setTitle: async (noteId, title, user) => {
     try {
       const response = await api.post('/Notes/setTitle', {
         noteId,
@@ -511,7 +474,7 @@ export const requestAPI = {
     }
   },
 
-  deleteNote: async (noteId, user, authToken) => {
+  deleteNote: async (noteId, user) => {
     try {
       // Delete the note
       const response = await api.post('/Notes/deleteNote', {
@@ -538,7 +501,7 @@ export const requestAPI = {
   },
 
   // Move note to folder
-  moveNote: async (noteId, folderId, user, authToken) => {
+  moveNote: async (noteId, folderId, user) => {
     try {
       const response = await api.post('/Folder/insertItem', {
         item: noteId,
@@ -552,7 +515,7 @@ export const requestAPI = {
   },
 
   // Tag management
-  tagItem: async (user, itemId, tagLabel, authToken) => {
+  tagItem: async (user, itemId, tagLabel) => {
     try {
       const response = await api.post('/Tags/addTag', {
         user,
@@ -565,7 +528,7 @@ export const requestAPI = {
     }
   },
 
-  untagItem: async (user, itemId, tagIdentifier, authToken) => {
+  untagItem: async (user, itemId, tagIdentifier) => {
     try {
       const response = await api.post('/Tags/removeTagFromItem', {
         user,
@@ -578,7 +541,7 @@ export const requestAPI = {
     }
   },
 
-  getItemTags: async (user, itemId, authToken) => {
+  getItemTags: async (user, itemId) => {
     try {
       const response = await api.post('/Tags/_getTagsForItem', {
         user,
@@ -590,7 +553,7 @@ export const requestAPI = {
     }
   },
 
-  getItemTagsWithIds: async (user, itemId, authToken) => {
+  getItemTagsWithIds: async (user, itemId) => {
     try {
       const response = await api.post('/Tags/_getTagsForItem', {
         user,
@@ -602,7 +565,7 @@ export const requestAPI = {
     }
   },
 
-  getUserTags: async (user, authToken) => {
+  getUserTags: async (user) => {
     try {
       const response = await api.post('/Tags/_getAllUserTags', {
         user
@@ -614,7 +577,7 @@ export const requestAPI = {
   },
 
   // Summary management
-  setSummary: async (user, itemId, summary, authToken) => {
+  setSummary: async (user, itemId, summary) => {
     try {
       const response = await api.post('/Summaries/setSummary', {
         item: itemId,
@@ -626,7 +589,7 @@ export const requestAPI = {
     }
   },
 
-  getSummary: async (user, itemId, authToken) => {
+  getSummary: async (user, itemId) => {
     try {
       const response = await api.post('/Summaries/getSummary', {
         item:itemId
@@ -637,7 +600,7 @@ export const requestAPI = {
     }
   },
 
-  deleteSummary: async (user, itemId, authToken) => {
+  deleteSummary: async (user, itemId) => {
     try {
       const response = await api.post('/Summaries/deleteSummary', {item:itemId})
       return response.data
@@ -646,7 +609,7 @@ export const requestAPI = {
     }
   },
 
-  getUserSummaries: async (user, authToken) => {
+  getUserSummaries: async (user) => {
     try {
       const response = await api.post('/Notes/getNotesByUser', {
         user
@@ -658,7 +621,7 @@ export const requestAPI = {
   },
 
   // Generate summary with AI
-  generateSummary: async (user, noteId, authToken) => {
+  generateSummary: async (user, noteId) => {
     try {
       // console.log('🔍 [generateSummary] Generating summary for note:', noteId)
       

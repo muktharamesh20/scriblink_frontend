@@ -363,7 +363,7 @@ export default {
         
         try {
           console.log('🔄 [FolderTreeNode.handleDrop] Calling folderAPI.moveFolder');
-          const result = await folderAPI.moveFolder(data.id, props.folder._id, authService.getAccessToken())
+          const result = await folderAPI.moveFolder(data.id, props.folder._id)
           console.log('✅ [FolderTreeNode.handleDrop] Folder moved successfully:', result)
           console.log('🔄 [FolderTreeNode.handleDrop] Emitting folder-moved event');
           emit('folder-moved')
