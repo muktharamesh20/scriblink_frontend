@@ -81,11 +81,6 @@ export const folderAPI = {
     console.warn('⚠️ folderAPI.getFolderChildren is deprecated - use requestAPI.getFolderStructure instead')
     throw new Error('Method deprecated - use requestAPI.getFolderStructure instead')
   },
-
-  getFolderDetails: async (folderId) => {
-    console.warn('⚠️ folderAPI.getFolderDetails is deprecated - use requestAPI.getFolderStructure instead')
-    throw new Error('Method deprecated - use requestAPI.getFolderStructure instead')
-  }
 }
 
 // Tags API calls (DEPRECATED - use requestAPI instead)
@@ -197,118 +192,6 @@ export const requestAPI = {
       })
     })
   },
-
-  // deleteFolder: async (folderId, user) => {
-  //   try {
-  //     // Ensure folderId is a string - handle various input formats
-  //     // console.log('🔍 [deleteFolder] Input folderId:', folderId, 'type:', typeof folderId)
-      
-  //     let folderIdStr
-  //     if (typeof folderId === 'string') {
-  //       folderIdStr = folderId
-  //     } else if (folderId && typeof folderId === 'object') {
-  //       // If it's an object, try to extract _id or id
-  //       folderIdStr = folderId._id || folderId.id
-  //       if (folderIdStr && typeof folderIdStr !== 'string') {
-  //         // If _id/id is still not a string, convert it
-  //         folderIdStr = String(folderIdStr)
-  //       }
-  //     } else {
-  //       folderIdStr = String(folderId)
-  //     }
-      
-  //     if (!folderIdStr || folderIdStr === 'undefined' || folderIdStr === 'null' || folderIdStr === '[object Object]') {
-  //       console.error('❌ [deleteFolder] Invalid folderId:', folderId, 'converted to:', folderIdStr)
-  //       throw new Error(`Invalid folderId: ${folderId}`)
-  //     }
-      
-  //     // console.log('🚀 [deleteFolder] Starting deleteFolder for folder:', folderIdStr, 'type:', typeof folderIdStr)
-      
-  //     // Step 1: Collect all descendant folder IDs recursively
-  //     const collectDescendantFolders = async (folderIdToProcess, folderIdsSet = new Set()) => {
-  //       try {
-  //         const folderDetails = await api.post('/Folder/_getFolderDetails', { folderId: folderIdToProcess })
-  //         if (folderDetails.data?.error) {
-  //           console.warn('⚠️ [deleteFolder] Could not get folder details:', folderIdToProcess, folderDetails.data.error)
-  //           return folderIdsSet
-  //         }
-          
-  //         const folder = folderDetails.data
-  //         folderIdsSet.add(folderIdToProcess)
-          
-  //         // Recursively collect child folders
-  //         if (folder.folders && Array.isArray(folder.folders)) {
-  //           for (const childFolderId of folder.folders) {
-  //             await collectDescendantFolders(childFolderId, folderIdsSet)
-  //           }
-  //         }
-          
-  //         return folderIdsSet
-  //       } catch (error) {
-  //         console.warn('⚠️ [deleteFolder] Error collecting descendants for folder:', folderIdToProcess, error)
-  //         return folderIdsSet
-  //       }
-  //     }
-      
-  //     // Collect all folders that will be deleted (including the root folder)
-  //     const allFolderIds = await collectDescendantFolders(folderIdStr)
-      
-  //     // Step 2: Get all notes from all folders
-  //     const allNotes = []
-  //     for (const folderIdToCheck of allFolderIds) {
-  //       try {
-  //         const folderDetails = await api.post('/Folder/_getFolderDetails', { folderId: folderIdToCheck })
-          
-  //         const folder = folderDetails.data
-  //         if (folder.elements && Array.isArray(folder.elements)) {
-  //           allNotes.push(...folder.elements)
-  //         }
-  //       } catch (error) {
-  //         console.warn('⚠️ [deleteFolder] Error getting notes from folder:', folderIdToCheck, error)
-  //       }
-  //     }
-
-      
-  //     // Step 3: Delete summaries for all notes
-  //     for (const noteId of allNotes) {
-  //       try {
-  //         await api.post('/Summaries/deleteSummary', { item: noteId })
-  //       } catch (summaryError) {
-  //         console.warn('⚠️ [deleteFolder] Could not delete summary for note:', noteId, summaryError)
-  //       }
-  //     }
-      
-  //     // Step 4: Delete all notes
-  //     for (const noteId of allNotes) {
-  //       try {
-  //         await api.post('/Notes/deleteNote', {
-  //           noteId,
-  //           user
-  //         })
-  //       } catch (noteError) {
-  //         console.warn('⚠️ [deleteFolder] Could not delete note:', noteId, noteError)
-  //       }
-  //     }
-      
-  //     // Step 5: Delete the folder (this will delete the folder and all its subfolders)
-  //     // Backend expects { f: Folder } where f is the folder ID string
-  //     const deleteFolderPayload = {
-  //       f: folderIdStr
-  //     }
-      
-  //     const response = await api.post('/Folder/deleteFolder', deleteFolderPayload)
-
-      
-  //     if (response.data?.error) {
-  //       console.error('❌ [deleteFolder] Backend returned error:', response.data.error)
-  //       throw new Error(response.data.error)
-  //     }
-      
-  //     return response.data
-  //   } catch (error) {
-  //     throw error.response?.data || error
-  //   }
-  // },
 
   moveFolder: async (folderId, newParentId) => {
     return authHandler.wrap(async () => {
@@ -457,29 +340,35 @@ export const requestAPI = {
   },
 
   deleteNote: async (noteId, user) => {
-    try {
-      // Delete the note
-      const response = await api.post('/Notes/deleteNote', {
+    return authHandler.wrap(async () => {
+      return await api.post('/Notes/deleteNote', {
         noteId,
         user
       })
+    })
+    // try {
+    //   // Delete the note
+    //   const response = await api.post('/Notes/deleteNote', {
+    //     noteId,
+    //     user
+    //   })
       
-      // Also delete any associated summary
-      try {
-        await api.post('/Summaries/deleteSummary', {
-          user,
-          itemId: noteId
-        })
-        // console.log('✅ [deleteNote] Summary deleted for note:', noteId)
-      } catch (summaryError) {
-        // Don't fail the note deletion if summary deletion fails
-        // console.log('⚠️ [deleteNote] Could not delete summary for note:', noteId, summaryError)
-      }
+    //   // // Also delete any associated summary
+    //   // try {
+    //   //   await api.post('/Summaries/deleteSummary', {
+    //   //     user,
+    //   //     itemId: noteId
+    //   //   })
+    //   //   // console.log('✅ [deleteNote] Summary deleted for note:', noteId)
+    //   // } catch (summaryError) {
+    //   //   // Don't fail the note deletion if summary deletion fails
+    //   //   // console.log('⚠️ [deleteNote] Could not delete summary for note:', noteId, summaryError)
+    //   // }
       
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    //   return response.data
+    // } catch (error) {
+    //   throw error.response?.data || error
+    // }
   },
 
   // Move note to folder
