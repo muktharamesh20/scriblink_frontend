@@ -64,7 +64,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { authAPI } from '../services/apiServices.js'
+import { authAPI, requestAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -121,23 +121,55 @@ export default {
 
       try {
         console.log('🌐 Making API call to register...')
-        const authResponse = await authAPI.register(form.username, form.password)
+        const registerResponse = await authAPI.register(form.username, form.password)
         
-        if (authResponse.user) {
-          const userId = authResponse.user
-          
-          // Store user with username - root folder will be handled by backend/dashboard
-          authService.setUserWithUsername(userId, form.username)
-          
+        if (registerResponse.user) {
+          const userId = registerResponse.user
           console.log('✅ Registration successful - User:', userId)
-          success.value = 'Account created successfully! Redirecting to dashboard...'
           
-          // Dispatch auth-changed event to update navbar
-          window.dispatchEvent(new Event('auth-changed'))
-          
-          setTimeout(() => {
-            router.push('/dashboard')
-          }, 2000)
+          // Automatically authenticate the user after registration to get tokens
+          console.log('🔐 Auto-authenticating after registration...')
+          try {
+            const authResponse = await authAPI.authenticate(form.username, form.password)
+            
+            if (authResponse.accessToken && authResponse.user) {
+              const { accessToken, user: authenticatedUserId } = authResponse
+              
+              // Store tokens and user data
+              authService.setTokens(accessToken, authenticatedUserId, form.username)
+              
+              // Fetch and store root folder
+              try {
+                const rootFolder = await requestAPI.getRootFolderId(authenticatedUserId, accessToken)
+                if (rootFolder) {
+                  authService.setRootFolder(rootFolder)
+                  console.log('✅ Root folder stored:', rootFolder)
+                }
+              } catch (folderError) {
+                console.error('⚠️ Could not fetch root folder, dashboard will try again:', folderError)
+                // Continue anyway - dashboard can try to fetch it
+              }
+              
+              console.log('✅ Auto-authentication successful')
+              success.value = 'Account created successfully! Redirecting to dashboard...'
+              
+              // Dispatch auth-changed event to update navbar
+              window.dispatchEvent(new Event('auth-changed'))
+              
+              setTimeout(() => {
+                router.push('/dashboard')
+              }, 2000)
+            } else {
+              error.value = 'Registration successful but authentication failed. Please log in.'
+            }
+          } catch (authError) {
+            console.error('❌ Auto-authentication error:', authError)
+            error.value = 'Registration successful but could not log you in. Please log in manually.'
+            // Still redirect to login after a delay
+            setTimeout(() => {
+              router.push('/login')
+            }, 3000)
+          }
         } else {
           error.value = 'Registration failed'
         }
