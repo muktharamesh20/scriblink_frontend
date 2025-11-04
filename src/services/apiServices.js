@@ -369,16 +369,13 @@ export const requestAPI = {
 
   // Move note to folder
   moveNote: async (noteId, folderId, user) => {
-    try {
-      const response = await api.post('/Folder/insertItem', {
+    return authHandler.wrap(async () => {
+      return await api.post('/Folder/insertItem', {
         item: noteId,
         folder:folderId,
         user
       })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   // Tag management
