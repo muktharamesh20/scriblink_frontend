@@ -76,11 +76,6 @@ export const folderAPI = {
     throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
   },
 
-  insertItem: async (folderId, itemId) => {
-    console.warn('⚠️ folderAPI.insertItem is deprecated - folder operations are handled internally')
-    throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
-  },
-
   deleteItem: async (item) => {
     console.warn('⚠️ folderAPI.deleteItem is deprecated - use requestAPI.deleteNote instead')
     throw new Error('Method deprecated - use requestAPI.deleteNote instead')
