@@ -327,16 +327,14 @@ export const requestAPI = {
   },
 
   setTitle: async (noteId, title, user) => {
-    try {
+    return authHandler.wrap(async () => {
       const response = await api.post('/Notes/setTitle', {
         noteId,
         newTitle: title,
         user
       })
       return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   deleteNote: async (noteId, user) => {
