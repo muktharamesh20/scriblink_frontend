@@ -76,20 +76,10 @@ export const folderAPI = {
     throw new Error('Method deprecated - use requestAPI.moveNote or other high-level operations')
   },
 
-  deleteItem: async (item) => {
-    console.warn('⚠️ folderAPI.deleteItem is deprecated - use requestAPI.deleteNote instead')
-    throw new Error('Method deprecated - use requestAPI.deleteNote instead')
-  },
-
   // Internal methods - should not be called directly from frontend
   getFolderChildren: async (folderId) => {
     console.warn('⚠️ folderAPI.getFolderChildren is deprecated - use requestAPI.getFolderStructure instead')
     throw new Error('Method deprecated - use requestAPI.getFolderStructure instead')
-  },
-
-  getFolderItems: async (folderId) => {
-    console.warn('⚠️ folderAPI.getFolderItems is deprecated - use requestAPI.getUserNotes instead')
-    throw new Error('Method deprecated - use requestAPI.getUserNotes instead')
   },
 
   getFolderDetails: async (folderId) => {
@@ -127,10 +117,6 @@ export const summariesAPI = {
 
   getSummary: async (user, itemId) => {
     return requestAPI.getSummary(user, itemId)
-  },
-
-  deleteSummary: async (user, itemId) => {
-    return requestAPI.deleteSummary(user, itemId)
   },
 
   getUserSummaries: async (user) => {
@@ -183,20 +169,12 @@ export const requestAPI = {
   },
 
   // Folder management
-  getFolderStructure: async (user, folderId = undefined) => {
-    // console.log('🚀 [requestAPI.getFolderStructure] Starting getFolderStructure API call');
-    // console.log('🔍 [requestAPI.getFolderStructure] Parameters:', { user, folderId });
-    
+  getFolderStructure: async (user, folderId = undefined) => {  
     try {
       const requestPayload = { user, folderId };
-      // console.log('🔍 [requestAPI.getFolderStructure] Request payload:', requestPayload);
-      
       const response = await api.post('/Folder/getFolderStructure', requestPayload);
-      // console.log('✅ [requestAPI.getFolderStructure] API response received:', response.data);
       return response.data
     } catch (error) {
-      console.error('❌ [requestAPI.getFolderStructure] API error:', error);
-      console.error('❌ [requestAPI.getFolderStructure] Error response:', error.response?.data);
       throw error.response?.data || error
     }
   },
@@ -589,15 +567,6 @@ export const requestAPI = {
       const response = await api.post('/Summaries/getSummary', {
         item:itemId
       })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  deleteSummary: async (user, itemId) => {
-    try {
-      const response = await api.post('/Summaries/deleteSummary', {item:itemId})
       return response.data
     } catch (error) {
       throw error.response?.data || error
