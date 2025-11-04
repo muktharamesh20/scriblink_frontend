@@ -172,15 +172,15 @@ export const requestAPI = {
   },
 
   loginUser: async (username, password) => {
-    console.log('🔐 [requestAPI.loginUser] Attempting login with:', { username, passwordLength: password?.length })
+    // console.log('🔐 [requestAPI.loginUser] Attempting login with:', { username, passwordLength: password?.length })
     try {
       const requestPayload = {
         username,
         password
       }
-      console.log('📡 [requestAPI.loginUser] Sending request to /Request/loginUser')
+      // console.log('📡 [requestAPI.loginUser] Sending request to /Request/loginUser')
       const response = await api.post('/PasswordAuth/authenticate', requestPayload)
-      console.log('✅ [requestAPI.loginUser] Response received:', response.data)
+      // console.log('✅ [requestAPI.loginUser] Response received:', response.data)
       return response.data
     } catch (error) {
       console.error('❌ [requestAPI.loginUser] Login failed:', error)
@@ -200,15 +200,15 @@ export const requestAPI = {
 
   // Folder management
   getFolderStructure: async (user, folderId = undefined) => {
-    console.log('🚀 [requestAPI.getFolderStructure] Starting getFolderStructure API call');
-    console.log('🔍 [requestAPI.getFolderStructure] Parameters:', { user, folderId });
+    // console.log('🚀 [requestAPI.getFolderStructure] Starting getFolderStructure API call');
+    // console.log('🔍 [requestAPI.getFolderStructure] Parameters:', { user, folderId });
     
     try {
       const requestPayload = { user, folderId };
-      console.log('🔍 [requestAPI.getFolderStructure] Request payload:', requestPayload);
+      // console.log('🔍 [requestAPI.getFolderStructure] Request payload:', requestPayload);
       
       const response = await api.post('/Folder/getFolderStructure', requestPayload);
-      console.log('✅ [requestAPI.getFolderStructure] API response received:', response.data);
+      // console.log('✅ [requestAPI.getFolderStructure] API response received:', response.data);
       return response.data
     } catch (error) {
       console.error('❌ [requestAPI.getFolderStructure] API error:', error);
@@ -233,7 +233,7 @@ export const requestAPI = {
   deleteFolder: async (folderId, user) => {
     try {
       // Ensure folderId is a string - handle various input formats
-      console.log('🔍 [deleteFolder] Input folderId:', folderId, 'type:', typeof folderId)
+      // console.log('🔍 [deleteFolder] Input folderId:', folderId, 'type:', typeof folderId)
       
       let folderIdStr
       if (typeof folderId === 'string') {
@@ -254,7 +254,7 @@ export const requestAPI = {
         throw new Error(`Invalid folderId: ${folderId}`)
       }
       
-      console.log('🚀 [deleteFolder] Starting deleteFolder for folder:', folderIdStr, 'type:', typeof folderIdStr)
+      // console.log('🚀 [deleteFolder] Starting deleteFolder for folder:', folderIdStr, 'type:', typeof folderIdStr)
       
       // Step 1: Collect all descendant folder IDs recursively
       const collectDescendantFolders = async (folderIdToProcess, folderIdsSet = new Set()) => {
@@ -343,25 +343,12 @@ export const requestAPI = {
   },
 
   moveFolder: async (folderId, newParentId) => {
-    console.log('🚀 [requestAPI.moveFolder] Starting moveFolder API call');
-    console.log('🔍 [requestAPI.moveFolder] Raw parameters:', { 
-      folderId: folderId, 
-      newParentId: newParentId, 
-      folderIdType: typeof folderId,
-      newParentIdType: typeof newParentId,
-      user: localStorage.getItem('user') 
-    });
+    // console.log('🚀 [requestAPI.moveFolder] Starting moveFolder API call');
     
     // Extract ID if parameter is an object
     const resolvedFolderId = folderId && typeof folderId === 'object' ? folderId._id || folderId.id : folderId;
     const resolvedNewParentId = newParentId && typeof newParentId === 'object' ? newParentId._id || newParentId.id : newParentId;
-    
-    console.log('🔍 [requestAPI.moveFolder] Resolved IDs:', { 
-      resolvedFolderId, 
-      resolvedNewParentId,
-      originalFolderId: folderId,
-      originalNewParentId: newParentId
-    });
+
     
     // Validate parameters - strict checks
     if (resolvedFolderId === undefined || resolvedFolderId === null || resolvedFolderId === '') {
@@ -388,15 +375,15 @@ export const requestAPI = {
         folderId: folderIdStr,
         newParentId: newParentIdStr
       };
-      console.log('🔍 [requestAPI.moveFolder] Request payload:', JSON.stringify(requestPayload, null, 2));
-      console.log('🔍 [requestAPI.moveFolder] Request payload keys:', Object.keys(requestPayload));
-      console.log('🔍 [requestAPI.moveFolder] Request payload values:', Object.values(requestPayload));
+      // console.log('🔍 [requestAPI.moveFolder] Request payload:', JSON.stringify(requestPayload, null, 2));
+      // console.log('🔍 [requestAPI.moveFolder] Request payload keys:', Object.keys(requestPayload));
+      // console.log('🔍 [requestAPI.moveFolder] Request payload values:', Object.values(requestPayload));
       
       const response = await api.post('/Folder/moveFolder', requestPayload);
-      console.log('🔍 [requestAPI.moveFolder] After API call - checking what was sent');
-      console.log('✅ [requestAPI.moveFolder] Full response:', response);
-      console.log('✅ [requestAPI.moveFolder] Response data:', response.data);
-      console.log('✅ [requestAPI.moveFolder] Response status:', response.status);
+      // console.log('🔍 [requestAPI.moveFolder] After API call - checking what was sent');
+      // console.log('✅ [requestAPI.moveFolder] Full response:', response);
+      // console.log('✅ [requestAPI.moveFolder] Response data:', response.data);
+      // console.log('✅ [requestAPI.moveFolder] Response status:', response.status);
       
       if (response.data?.error) {
         throw new Error(response.data.error)
@@ -554,10 +541,10 @@ export const requestAPI = {
           user,
           itemId: noteId
         })
-        console.log('✅ [deleteNote] Summary deleted for note:', noteId)
+        // console.log('✅ [deleteNote] Summary deleted for note:', noteId)
       } catch (summaryError) {
         // Don't fail the note deletion if summary deletion fails
-        console.log('⚠️ [deleteNote] Could not delete summary for note:', noteId, summaryError)
+        // console.log('⚠️ [deleteNote] Could not delete summary for note:', noteId, summaryError)
       }
       
       return response.data
@@ -689,7 +676,7 @@ export const requestAPI = {
   // Generate summary with AI
   generateSummary: async (user, noteId) => {
     try {
-      console.log('🔍 [generateSummary] Generating summary for note:', noteId)
+      // console.log('🔍 [generateSummary] Generating summary for note:', noteId)
       
       // Ensure noteId is a string
       const noteIdString = typeof noteId === 'string' ? noteId : noteId?._id || noteId?.toString()
@@ -709,7 +696,7 @@ export const requestAPI = {
         throw new Error(noteDetails.error)
       }
 
-      console.log('🔍 [generateSummary] Note details:', noteDetails)
+      // console.log('🔍 [generateSummary] Note details:', noteDetails)
 
       // Extract content from note details - response should be NoteStructure with content directly
       const noteContent = noteDetails.content
