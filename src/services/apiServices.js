@@ -50,16 +50,7 @@ export const folderAPI = {
   },
 
   createFolder: async (user, title, parent, authToken) => {
-    try {
-      const response = await api.post('/Folder/createFolder', {
-        user,
-        title,
-        parent
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    return requestAPI.createFolder(user, title, parent, authToken)
   },
 
   moveFolder: async (folder, newParent, authToken) => {
@@ -216,16 +207,13 @@ export const requestAPI = {
   },
 
   createFolder: async (user, title, parentFolderId, authToken) => {
-    try {
-      const response = await api.post('/Request/createFolder', {
+    return authHandler.wrap(async () => {
+      return await api.post('/Folder/createFolder', {
         user,
         title,
-        parentFolderId
+        parent: parentFolderId
       })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   deleteFolder: async (folderId, user, authToken) => {

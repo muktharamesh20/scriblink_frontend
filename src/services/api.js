@@ -22,13 +22,20 @@ api.interceptors.request.use(
     
     // Add access token to Authorization header AND body
     const accessToken = localStorage.getItem('accessToken')
-    if (accessToken && !config.url?.includes('PasswordAuth')) {
-      config.headers.Authorization = `Bearer ${accessToken}`
+    if (!config.url?.includes('PasswordAuth')) {
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`
+      }
       
-      // Also add authToken to request body if it's a POST request
+      // Always add authToken to request body if it's a POST request (even if null/undefined)
+      // This ensures the backend pattern matching works correctly
       if (config.method === 'post' && config.data && typeof config.data === 'object') {
-        config.data.authToken = accessToken
-        console.log('🔑 Adding authToken to request body:', accessToken.substring(0, 20) + '...')
+        config.data.authToken = accessToken || null
+        if (accessToken) {
+          console.log('🔑 Adding authToken to request body:', accessToken.substring(0, 20) + '...')
+        } else {
+          console.log('⚠️ No accessToken found - sending null authToken')
+        }
       }
     }
     
