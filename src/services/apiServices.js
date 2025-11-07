@@ -223,33 +223,14 @@ export const requestAPI = {
 
       // 2. Get all folders for this user to determine folderId mapping
       let allFolders = [];
-      try {
-        const allFoldersResult = await api.post('/Folder/getAllFolders', { user });
-        
-        if (allFoldersResult.data?.error) {
-          throw new Error(allFoldersResult.data.error);
-        }
-        
-        allFolders = Array.isArray(allFoldersResult.data) ? allFoldersResult.data : [];
-      } catch (error) {
-        console.warn('⚠️ [getUserNotes] getAllFolders failed, trying getFolderStructure:', error.message);
-        // Fallback: use getFolderStructure to get all folders
-        try {
-          const folderStructureResult = await api.post('/Request/getFolderStructure', { user });
-          if (folderStructureResult.data?.error) {
-            console.warn('⚠️ [getUserNotes] getFolderStructure also failed:', folderStructureResult.data.error);
-            allFolders = [];
-          } else {
-            // getFolderStructure returns { folders: [], items: [] }
-            allFolders = Array.isArray(folderStructureResult.data?.folders) 
-              ? folderStructureResult.data.folders 
-              : [];
-          }
-        } catch (fallbackError) {
-          console.warn('⚠️ [getUserNotes] Both folder endpoints failed, continuing with empty folders:', fallbackError.message);
-          allFolders = [];
-        }
+      const allFoldersResult = await api.post('/Folder/getAllFolders', { user });
+      
+      if (allFoldersResult.data?.error) {
+        throw new Error(allFoldersResult.data.error);
       }
+      
+      allFolders = Array.isArray(allFoldersResult.data) ? allFoldersResult.data : [];
+  
 
       // Build a mapping of noteId -> folderId
       const noteToFolderMap = new Map();
