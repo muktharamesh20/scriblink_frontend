@@ -45,10 +45,6 @@ export const folderAPI = {
     return requestAPI.getRootFolderId(localStorage.getItem('user'))
   },
 
-  getFolderStructure: async (user, folderId = undefined) => {
-    return requestAPI.getFolderStructure(user, folderId)
-  },
-
   getAllFolders: async (user) => {
     return requestAPI.getAllFolders(user)
   },
@@ -143,16 +139,6 @@ export const requestAPI = {
     try {
       const response = await api.post('/Folder/_getRootFolderId', { user })
       return response.data.rootFolder
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
-  getFolderStructure: async (user, folderId = undefined) => {  
-    try {
-      const requestPayload = { user, folderId };
-      const response = await api.post('/Folder/getFolderStructure', requestPayload);
-      return response.data
     } catch (error) {
       throw error.response?.data || error
     }
