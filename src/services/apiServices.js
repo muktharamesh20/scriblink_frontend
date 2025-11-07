@@ -418,6 +418,15 @@ export const requestAPI = {
     }
   },
 
+  getNoteDetails: async (user, noteId) => {
+      return authHandler.wrap(async () => {
+        return await api.post('/Notes/getNoteDetails', {
+          user: user,
+          noteId: noteId
+        })
+      })
+  },
+
   // Generate summary with AI
   generateSummary: async (user, noteId) => {
     try {
@@ -430,19 +439,11 @@ export const requestAPI = {
         throw new Error('Invalid noteId provided')
       }
       
-      const noteDetailsResponse = await api.post('/Notes/getNoteDetails', {
-        user: user,
-        noteId: noteIdString
-      })
-      
-      const noteDetails = noteDetailsResponse.data
-      
-      if (noteDetails.error) {
-        throw new Error(noteDetails.error)
-      }
+      const noteDetailsResponse = await requestAPI.getNoteDetails(user, noteId)
+      console.log('🔍 [generateSummary] Note details response:', noteDetailsResponse)
 
       // Extract content from note details - response should be NoteStructure with content directly
-      const noteContent = noteDetails.content
+      const noteContent = noteDetailsResponse.content
       
       if (!noteContent) {
         throw new Error('Note content not found in response')
