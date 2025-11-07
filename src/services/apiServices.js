@@ -138,12 +138,13 @@ export const requestAPI = {
 
 
   getRootFolderId: async (user) => {
-    try {
-      const response = await api.post('/Folder/_getRootFolderId', { user })
-      return response.data.rootFolder
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    const response = await authHandler.wrap(async () => {
+      return await api.post('/Folder/getRootFolderId', { user })
+    })
+    console.log('🔍 [getRootFolderId] Response:', response)
+    console.log('🔍 [getRootFolderId] response.rootFolder:', response.rootFolder)
+    // Backend sync responds with { rootFolder, accessToken }
+    return response.rootFolder
   },
 
   createFolder: async (user, title, parentFolderId) => {

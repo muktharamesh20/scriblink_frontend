@@ -455,14 +455,17 @@ export default {
       // If no root folder in localStorage, try to fetch it
       if (!rootFolder && user) {
         try {
+          console.log('🔍 [Dashboard.refreshFolders] Fetching root folder for user:', user)
           // getRootFolderId already extracts and returns just the folder ID
           rootFolder = await requestAPI.getRootFolderId(user)
+          console.log('🔍 [Dashboard.refreshFolders] Root folder result:', rootFolder)
           if (rootFolder) {
             authService.setRootFolder(rootFolder)
             console.log('✅ Root folder fetched and stored:', rootFolder)
           }
         } catch (error) {
           console.error('❌ [Dashboard.refreshFolders] Failed to fetch root folder:', error)
+          console.error('❌ [Dashboard.refreshFolders] Error details:', error)
         }
       }
       
