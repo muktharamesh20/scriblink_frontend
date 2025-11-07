@@ -332,15 +332,11 @@ export const requestAPI = {
 
   // Get full user tags (with items array) for filtering
   _getAllUserTagsFull: async (user) => {
-    try {
-      const response = await api.post('/Tags/_getAllUserTags', { user })
-      if (response.data?.error) {
-        throw new Error(`Failed to get tags: ${response.data.error}`)
-      }
-      return response.data || []
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    const response = await authHandler.wrap(async () => {
+      return await api.post('/Tags/getAllUserTags', { user })
+    })
+    // Backend sync responds with { tags: [...], accessToken }
+    return response.tags || []
   },
 
   // Summary management
