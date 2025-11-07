@@ -379,14 +379,14 @@ export const requestAPI = {
   },
 
   getUserSummaries: async (user) => {
-    try {
-      const response = await api.post('/Notes/getNotesByUser', {
-        ownerId: user  // Backend expects 'ownerId', not 'user'
+    const response = await authHandler.wrap(async () => {
+      return await api.post('/Notes/getNotesByUser', {
+        user: user,  // For authenticated request, send 'user'
+        ownerId: user  // Backend concept expects 'ownerId'
       })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
+    // Backend sync responds with { notes: [...], accessToken }
+    return response.notes || []
   },
 
   getNoteDetails: async (user, noteId) => {
