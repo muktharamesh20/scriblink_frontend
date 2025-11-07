@@ -461,7 +461,7 @@ export const requestAPI = {
           item: noteIdString
         })
 
-        if (summaryResult.data.error) {
+        if ("error" in summaryResult.data) {
           throw new Error(summaryResult.data.error)
         }
 

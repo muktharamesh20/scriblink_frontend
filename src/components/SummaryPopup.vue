@@ -18,17 +18,22 @@
         </div>
         
         <div v-else-if="!summary" class="no-summary-state">
-          <div v-if="!isEditing">
+          <div v-if="!isEditing && !generating">
             <div class="no-summary-icon">✨</div>
             <p>No summary available for this note.</p>
             <div class="no-summary-actions">
               <button @click="generateSummary" class="btn btn-primary btn-sm" :disabled="generating">
-                {{ generating ? 'Generating...' : 'Generate Summary' }}
+                Generate Summary
               </button>
               <button @click="createOwnSummary" class="btn btn-secondary btn-sm">
                 Create Your Own
               </button>
             </div>
+          </div>
+          
+          <div v-else-if="generating" class="generating-state">
+            <div class="colorful-spinner"></div>
+            <p>Generating AI summary...</p>
           </div>
           
           <div v-else class="summary-edit">
@@ -50,36 +55,43 @@
         </div>
         
         <div v-else class="summary-content">
-          <div class="summary-actions">
-            <button @click="startEditing" class="btn btn-secondary btn-sm" v-if="!isEditing">
-              Edit
-            </button>
-            <button @click="saveSummary" class="btn btn-primary btn-sm" v-if="isEditing" :disabled="saving">
-              {{ saving ? 'Saving...' : 'Save' }}
-            </button>
-            <button @click="cancelEditing" class="btn btn-secondary btn-sm" v-if="isEditing">
-              Cancel
-            </button>
-            <button @click="regenerateSummary" class="btn btn-secondary btn-sm" v-if="!isEditing">
-              Regenerate
-            </button>
+          <div v-if="generating" class="generating-state">
+            <div class="colorful-spinner"></div>
+            <p>Generating AI summary...</p>
           </div>
           
-          <div v-if="isEditing" class="summary-edit">
-            <textarea 
-              v-model="editingSummary" 
-              class="summary-textarea"
-              placeholder="Enter summary..."
-              rows="8"
-            ></textarea>
-          </div>
+          <div v-else>
+            <div class="summary-actions">
+              <button @click="startEditing" class="btn btn-secondary btn-sm" v-if="!isEditing">
+                Edit
+              </button>
+              <button @click="saveSummary" class="btn btn-primary btn-sm" v-if="isEditing" :disabled="saving">
+                {{ saving ? 'Saving...' : 'Save' }}
+              </button>
+              <button @click="cancelEditing" class="btn btn-secondary btn-sm" v-if="isEditing">
+                Cancel
+              </button>
+              <button @click="regenerateSummary" class="btn btn-secondary btn-sm" v-if="!isEditing">
+                Regenerate
+              </button>
+            </div>
           
-          <div v-else class="summary-display" v-html="renderedSummary"></div>
-          
-          <div class="summary-meta" v-if="summary">
-            <small class="summary-date">
-              {{ summaryDate ? `Last updated: ${formatDate(summaryDate)}` : '' }}
-            </small>
+            <div v-if="isEditing" class="summary-edit">
+              <textarea 
+                v-model="editingSummary" 
+                class="summary-textarea"
+                placeholder="Enter summary..."
+                rows="8"
+              ></textarea>
+            </div>
+            
+            <div v-else class="summary-display" v-html="renderedSummary"></div>
+            
+            <div class="summary-meta" v-if="summary">
+              <small class="summary-date">
+                {{ summaryDate ? `Last updated: ${formatDate(summaryDate)}` : '' }}
+              </small>
+            </div>
           </div>
         </div>
       </div>
@@ -367,6 +379,56 @@ export default {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Colorful spinner matching SummaryPanel */
+.colorful-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid transparent;
+  border-top: 4px solid var(--accent-primary);
+  border-right: 4px solid var(--accent-secondary);
+  border-bottom: 4px solid var(--text-secondary);
+  border-left: 4px solid var(--text-muted);
+  border-radius: 50%;
+  animation: neutral-spin 1.2s linear infinite;
+  box-shadow: 0 0 20px rgba(184, 179, 172, 0.2);
+  margin: 0 auto;
+}
+
+@keyframes neutral-spin {
+  0% { 
+    transform: rotate(0deg);
+    box-shadow: 0 0 20px rgba(184, 179, 172, 0.2);
+  }
+  25% { 
+    box-shadow: 0 0 20px rgba(153, 153, 153, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(108, 108, 108, 0.2);
+  }
+  75% { 
+    box-shadow: 0 0 20px rgba(153, 153, 153, 0.2);
+  }
+  100% { 
+    transform: rotate(360deg);
+    box-shadow: 0 0 20px rgba(184, 179, 172, 0.2);
+  }
+}
+
+.generating-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.generating-state p {
+  margin: 0;
+  font-size: 1rem;
 }
 
 .no-summary-icon {
