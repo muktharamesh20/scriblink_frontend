@@ -276,51 +276,37 @@ export default {
             }
           }
           
-          // Group notes by tag
-          const tagGroups = {}
-          
-          // Initialize tag groups with both label and ID
-          for (const tag of allUserTags) {
-            const tagLabel = typeof tag === 'string' ? tag : tag.label
-            tagGroups[tagLabel] = {
-              label: tagLabel,
-              id: typeof tag === 'string' ? tagIdMap[tag] : tag._id,
-              notes: []
-            }
+          // Create a lookup map of notes by ID for fast access
+          const notesById = {}
+          for (const note of allNotes.value) {
+            notesById[note._id] = note
           }
           
-          // For each note, get its tags and add to appropriate groups
-          for (const note of allNotes.value) {
-            try {
-              const noteTagsResponse = await tagsAPI.getItemTags(user, note._id, authService.getAccessToken())
-              
-              // Handle both old format {tags: [...]} and new format [...]
-              let tagsArray = []
-              if (noteTagsResponse && Array.isArray(noteTagsResponse)) {
-                // New format: direct array of tag objects
-                tagsArray = noteTagsResponse
-              } else if (noteTagsResponse && noteTagsResponse.tags && Array.isArray(noteTagsResponse.tags)) {
-                // Old format: {tags: [...]}
-                tagsArray = noteTagsResponse.tags
-              }
-              
-              if (tagsArray.length > 0) {
-                for (const tag of tagsArray) {
-                  // Handle both string tags and object tags with tagId and label
-                  const tagLabel = typeof tag === 'string' ? tag : tag.label
-                  const tagId = typeof tag === 'string' ? tagIdMap[tag] : tag.tagId
-                  
-                  if (tagGroups[tagLabel]) {
-                    // Store the note with its tag ID for removal
-                    tagGroups[tagLabel].notes.push({
-                      ...note,
-                      tagId: tagId
-                    })
-                  }
+          // Group notes by tag - use the items array from each tag (no additional API calls!)
+          const tagGroups = {}
+          
+          for (const tag of allUserTags) {
+            const tagLabel = tag.label
+            const tagId = tag._id
+            
+            tagGroups[tagLabel] = {
+              label: tagLabel,
+              id: tagId,
+              notes: []
+            }
+            
+            // Each tag has an 'items' array containing note IDs
+            if (tag.items && Array.isArray(tag.items)) {
+              for (const noteId of tag.items) {
+                const note = notesById[noteId]
+                if (note) {
+                  // Store the note with its tag ID for removal
+                  tagGroups[tagLabel].notes.push({
+                    ...note,
+                    tagId: tagId
+                  })
                 }
               }
-            } catch (error) {
-              console.log(`No tags found for note ${note._id}:`, error)
             }
           }
           
