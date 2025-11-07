@@ -333,7 +333,7 @@ export const requestAPI = {
   // Tag management
   tagItem: async (user, itemId, tagLabel) => {
     return authHandler.wrap(async () => {
-      return await api.post('/Tags/addTag', {
+      return await api.post('/Tags/addTagToItem', {
         user,
         item: itemId,
         label: tagLabel
