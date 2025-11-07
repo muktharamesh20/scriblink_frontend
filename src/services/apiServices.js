@@ -333,18 +333,6 @@ export const requestAPI = {
     }
   },
 
-  getItemTagsWithIds: async (user, itemId) => {
-    try {
-      const response = await api.post('/Tags/_getTagsForItem', {
-        user,
-        item: itemId
-      })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  },
-
   getUserTags: async (user) => {
     try {
       const response = await api.post('/Tags/_getAllUserTags', {
