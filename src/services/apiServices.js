@@ -197,17 +197,9 @@ export const requestAPI = {
 
   getUserNotes: async (user, folderId = undefined, tagLabel = null) => {
     try {
-      // 1. Get all notes for the user
-      const notesResult = await api.post('/Notes/getNotesByUser', {
-        ownerId: user
-      });
-      
-      if (notesResult.data?.error) {
-        throw new Error(notesResult.data.error);
-      }
-      
-      // Backend returns array directly, but validate it's an array
-      let notes = Array.isArray(notesResult.data) ? notesResult.data : [];
+      // 1. Get all notes for the user (using getUserSummaries)
+      const notesData = await requestAPI.getUserSummaries(user);
+      let notes = Array.isArray(notesData) ? notesData : [];
 
       // 2. Get all folders for this user to determine folderId mapping
       let allFolders = [];
@@ -389,7 +381,7 @@ export const requestAPI = {
   getUserSummaries: async (user) => {
     try {
       const response = await api.post('/Notes/getNotesByUser', {
-        user
+        ownerId: user  // Backend expects 'ownerId', not 'user'
       })
       return response.data
     } catch (error) {
