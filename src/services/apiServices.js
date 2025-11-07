@@ -322,15 +322,14 @@ export const requestAPI = {
   },
 
   getItemTags: async (user, itemId) => {
-    try {
-      const response = await api.post('/Tags/_getTagsForItem', {
-        user,
+    const response = await authHandler.wrap(async () => {
+      return await api.post('/Tags/getTagsForItem', {
+        user: user,
         item: itemId
       })
-      return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
+    // Backend sync responds with { tags: [...], accessToken }
+    return response.tags || []
   },
 
   getUserTags: async (user) => {
