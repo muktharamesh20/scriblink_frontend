@@ -194,65 +194,19 @@ export const requestAPI = {
     })
   },
 
+  // Get user notes with folder mapping and optional filtering - now using system sync
   getUserNotes: async (user, folderId = undefined, tagLabel = null) => {
-    try {
-      // 1. Get all notes for the user (using getUserSummaries)
-      const notesData = await requestAPI.getUserSummaries(user);
-      let notes = Array.isArray(notesData) ? notesData : [];
-
-      // 2. Get all folders for this user to determine folderId mapping
-      let allFolders = [];
-      const allFoldersResult = await requestAPI.getAllFolders(user);
-      console.log('🔍 [getUserNotes] getAllFolders result:', allFoldersResult);
-      
-      if (allFoldersResult?.error) {
-        throw new Error(allFoldersResult.error);
-      }
-      
-      // getAllFolders uses authHandler.wrap, returns { folders: [...], accessToken }
-      allFolders = Array.isArray(allFoldersResult.folders) ? allFoldersResult.folders : [];
-      console.log('🔍 [getUserNotes] Extracted folders:', allFolders.length, 'folders');
-
-      // Build a mapping of noteId -> folderId
-      const noteToFolderMap = new Map();
-      for (const folder of allFolders) {
-        if (Array.isArray(folder.elements)) {
-          for (const noteId of folder.elements) {
-            noteToFolderMap.set(noteId, folder._id);
-          }
-        }
-      }
-
-      // Augment notes with virtual 'folderId'
-      let notesWithFolder = notes.map((note) => ({
-        ...note,
-        folderId: noteToFolderMap.get(note._id) || null,
-      }));
-
-      // Folder filter
-      if (folderId !== undefined) {
-        notesWithFolder = notesWithFolder.filter((note) => note.folderId === folderId);
-      }
-
-      // Tag filter (optional)
-      if (tagLabel !== undefined && tagLabel !== null) {
-        // Get all user tags (full objects with items, not just labels)
-        const allTagsResult = await requestAPI._getAllUserTagsFull(user);
-        const tagWithLabel = allTagsResult.find((tag) => tag.label === tagLabel);
-
-        if (tagWithLabel) {
-          notesWithFolder = notesWithFolder.filter(note =>
-            Array.isArray(tagWithLabel.items) && tagWithLabel.items.includes(note._id)
-          );
-        } else {
-          notesWithFolder = []; // No notes for this tag
-        }
-      }
-
-      return { notes: notesWithFolder };
-    } catch (error) {
-      throw error.response?.data || error;
-    }
+    const response = await authHandler.wrap(async () => {
+      return await api.post('/Notes/getUserNotes', {
+        user: user,
+        folderId: folderId,
+        tagLabel: tagLabel
+      })
+    })
+    
+    // Backend sync responds with { notes, accessToken }
+    // Notes already have folderId augmented and are filtered
+    return { notes: response.notes || [] }
   },
 
   updateContent: async (noteId, content, user) => {

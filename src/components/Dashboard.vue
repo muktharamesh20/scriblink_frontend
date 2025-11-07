@@ -172,7 +172,7 @@ export default {
       try {
         console.log('🔄 Loading all notes for sidebar...')
         // Get ALL notes for the user (not just root folder notes)
-        const userNotes = await notesAPI.getUserNotes(user, undefined, null, authService.getAccessToken())
+        const userNotes = await notesAPI.getUserNotes(user, undefined, null)
         console.log('📦 API response:', userNotes)
         allNotes.value = userNotes.notes || []
         console.log('✅ Loaded notes for sidebar:', allNotes.value.length, 'notes')
@@ -566,7 +566,7 @@ export default {
       try {
         // Get user notes for the current folder or root folder
         const folderId = currentFolder.value?._id || rootFolder
-        const userNotes = await notesAPI.getUserNotes(user, folderId, null, authService.getAccessToken())
+        const userNotes = await notesAPI.getUserNotes(user, folderId, null)
         notes.value = userNotes.notes || []
         
         // Also refresh sidebar notes
@@ -591,7 +591,7 @@ export default {
       if (!user) return
       
       try {
-        const folderNotes = await notesAPI.getUserNotes(user, folder._id, null, authService.getAccessToken())
+        const folderNotes = await notesAPI.getUserNotes(user, folder._id, null)
         notes.value = folderNotes.notes || []
         console.log('🔍 Loaded notes for folder:', folderNotes.notes?.length || 0, 'notes')
       } catch (error) {
@@ -629,7 +629,7 @@ export default {
       if (!user || !rootFolder) return
       
       try {
-        const rootNotes = await notesAPI.getUserNotes(user, rootFolder, null, authService.getAccessToken())
+        const rootNotes = await notesAPI.getUserNotes(user, rootFolder, null)
         notes.value = rootNotes.notes || []
       } catch (error) {
         console.error('Error loading root notes:', error)

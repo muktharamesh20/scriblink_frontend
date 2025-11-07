@@ -84,7 +84,7 @@ export default {
         console.log('🔍 [SearchBar] Loading search data...')
         
         // Load all notes
-        const userNotes = await notesAPI.getUserNotes(user, undefined, null, authService.getAccessToken())
+        const userNotes = await notesAPI.getUserNotes(user, undefined, null)
         allNotes.value = userNotes.notes || []
         console.log('🔍 [SearchBar] Loaded notes:', allNotes.value.length)
 
