@@ -455,9 +455,8 @@ export default {
       // If no root folder in localStorage, try to fetch it
       if (!rootFolder && user) {
         try {
-          const rootFolderResult = await requestAPI.getRootFolderId(user)
-          // getRootFolderId uses passthrough, returns axios response with .data
-          rootFolder = rootFolderResult.data?.rootFolder || rootFolderResult.data
+          // getRootFolderId already extracts and returns just the folder ID
+          rootFolder = await requestAPI.getRootFolderId(user)
           if (rootFolder) {
             authService.setRootFolder(rootFolder)
             console.log('✅ Root folder fetched and stored:', rootFolder)
@@ -479,8 +478,9 @@ export default {
         const foldersResult = await folderAPI.getAllFolders(user)
         console.log('🔍 [Dashboard.refreshFolders] Folders result received:', foldersResult);
         
-        // getAllFolders uses passthrough, returns axios response with .data
-        const allFolders = Array.isArray(foldersResult.data) ? foldersResult.data : (foldersResult.data?.folders || [])
+        // getAllFolders uses authHandler.wrap, which returns response.data directly
+        // Backend sync responds with { request, folders, accessToken }
+        const allFolders = foldersResult.folders || []
         console.log('🔍 [Dashboard.refreshFolders] All folders count:', allFolders.length);
         console.log('🔍 [Dashboard.refreshFolders] All folders:', allFolders.map(f => ({ _id: f._id, title: f.title, folders: f.folders })));
         

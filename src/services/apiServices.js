@@ -117,7 +117,9 @@ export const requestAPI = {
   },
 
   getAllFolders: async (user) => {
-    return await api.post('/Folder/getAllFolders', { user })
+    return authHandler.wrap(async () => {
+      return await api.post('/Folder/getAllFolders', { user })
+    })
   },
 
   loginUser: async (username, password) => {
@@ -209,14 +211,16 @@ export const requestAPI = {
 
       // 2. Get all folders for this user to determine folderId mapping
       let allFolders = [];
-      const allFoldersResult = await api.post('/Folder/getAllFolders', { user });
+      const allFoldersResult = await requestAPI.getAllFolders(user);
+      console.log('🔍 [getUserNotes] getAllFolders result:', allFoldersResult);
       
-      if (allFoldersResult.data?.error) {
-        throw new Error(allFoldersResult.data.error);
+      if (allFoldersResult?.error) {
+        throw new Error(allFoldersResult.error);
       }
       
-      allFolders = Array.isArray(allFoldersResult.data) ? allFoldersResult.data : [];
-  
+      // getAllFolders uses authHandler.wrap, returns { folders: [...], accessToken }
+      allFolders = Array.isArray(allFoldersResult.folders) ? allFoldersResult.folders : [];
+      console.log('🔍 [getUserNotes] Extracted folders:', allFolders.length, 'folders');
 
       // Build a mapping of noteId -> folderId
       const noteToFolderMap = new Map();
