@@ -450,12 +450,24 @@ export const requestAPI = {
       }
 
       const summaryResult = await api.post('/Summaries/setSummaryWithAI', {
-        text: noteContent,
+          user: user,
+          text: noteContent,
+          tem: noteIdString
+        })
+
+        await requestAPI.setSummary(user, noteIdString, summaryResult.data.summary)
+
+        console.log('🔍 [generateSummary] Summary result:', summaryResult.data)
+
+      const newSummary = await api.post('/Summaries/getSummary', {
+        user: user,
         item: noteIdString
       })
-      return summaryResult.data
+
+      return newSummary.data
     } catch (error) {
       console.error('❌ [generateSummary] Error:', error)
+      console.log('❌ [generateSummary] Error:', error.response?.data)
       throw error.response?.data || error
     }
   }
