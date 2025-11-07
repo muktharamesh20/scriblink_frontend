@@ -144,11 +144,12 @@ export default {
 
       try {
         console.log('🔍 [SummaryPopup] Loading summary for note:', props.note._id)
-        const response = await summariesAPI.getSummary(user, props.note._id, authService.getAccessToken())
-        console.log('🔍 [SummaryPopup] Summary response:', response)
+        // getSummary now returns the summary directly (not wrapped in response object)
+        const summaryText = await summariesAPI.getSummary(user, props.note._id)
+        console.log('🔍 [SummaryPopup] Summary response:', summaryText)
         
-        if (response.summary) {
-          summary.value = response.summary
+        if (summaryText) {
+          summary.value = summaryText
           summaryDate.value = new Date()
         } else {
           summary.value = ''
@@ -185,17 +186,18 @@ export default {
 
       try {
         console.log('Generating summary for note:', props.note._id)
-        const response = await summariesAPI.generateSummary(user, props.note._id, authService.getAccessToken())
+        // generateSummary now returns the summary directly (not wrapped in response object)
+        const generatedSummary = await summariesAPI.generateSummary(user, props.note._id)
         
-        if (response.summary) {
-          summary.value = response.summary
+        if (generatedSummary) {
+          summary.value = generatedSummary
           summaryDate.value = new Date()
-        } else if (response.error) {
+        } else {
           error.value = 'Cannot generate high quality summary. Please try again or write your own.'
         }
       } catch (err) {
         console.error('Error generating summary:', err)
-        error.value = 'Cannot generate high quality summary. Please try again or write your own.'
+        error.value = err.error || 'Cannot generate high quality summary. Please try again or write your own.'
       } finally {
         generating.value = false
       }

@@ -116,10 +116,11 @@ export default {
 
       try {
         console.log('🔍 [SummaryPanel] Loading summary for note:', props.note._id, 'user:', user)
-        const response = await summariesAPI.getSummary(user, props.note._id, authService.getAccessToken())
-        console.log('🔍 [SummaryPanel] Summary response:', response)
-        if (response.summary) {
-          summary.value = response.summary
+        // getSummary now returns the summary directly (not wrapped in response object)
+        const summaryText = await summariesAPI.getSummary(user, props.note._id)
+        console.log('🔍 [SummaryPanel] Summary response:', summaryText)
+        if (summaryText) {
+          summary.value = summaryText
           lastGenerated.value = new Date()
         } else {
           summary.value = ''
@@ -148,19 +149,20 @@ export default {
 
       try {
         console.log('Generating summary for note:', props.note._id)
-        const response = await summariesAPI.generateSummary(user, props.note._id, authService.getAccessToken())
+        // generateSummary now returns the summary directly (not wrapped in response object)
+        const generatedSummary = await summariesAPI.generateSummary(user, props.note._id)
         
-        if (response.summary) {
-          summary.value = response.summary
+        if (generatedSummary) {
+          summary.value = generatedSummary
           lastGenerated.value = new Date()
           initialContentLength.value = props.note.content.length
           emit('summary-updated')
-        } else if (response.error) {
+        } else {
           error.value = 'Cannot generate high quality summary. Please try again or write your own'
         }
       } catch (err) {
         console.error('Error generating summary:', err)
-        error.value = 'Cannot generate high quality summary. Please try again or write your own'
+        error.value = err.error || 'Cannot generate high quality summary. Please try again or write your own'
       } finally {
         generating.value = false
       }

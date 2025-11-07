@@ -141,8 +141,6 @@ export const requestAPI = {
     const response = await authHandler.wrap(async () => {
       return await api.post('/Folder/getRootFolderId', { user })
     })
-    console.log('🔍 [getRootFolderId] Response:', response)
-    console.log('🔍 [getRootFolderId] response.rootFolder:', response.rootFolder)
     // Backend sync responds with { rootFolder, accessToken }
     return response.rootFolder
   },
@@ -352,14 +350,14 @@ export const requestAPI = {
   },
 
   getSummary: async (user, itemId) => {
-    return authHandler.wrap(async () => {
-      const response = await api.post('/Summaries/getSummary', {
+    const response = await authHandler.wrap(async () => {
+      return await api.post('/Summaries/getSummary', {
         user: user,
         item: itemId
       })
-      console.log('🔍 [getSummary] Summary result:', response)
-      return response.data
     })
+    // Backend sync responds with { summary, accessToken }
+    return response.summary
   },
 
   getUserSummaries: async (user) => {
@@ -386,51 +384,23 @@ export const requestAPI = {
     return response
   },
 
-  // Generate summary with AI
+  // Generate summary with AI - now using system sync that chains getNoteDetails + setSummaryWithAI + getSummary
   generateSummary: async (user, noteId) => {
-    try {
-      // console.log('🔍 [generateSummary] Generating summary for note:', noteId)
-      
-      // Ensure noteId is a string
-      const noteIdString = typeof noteId === 'string' ? noteId : noteId?._id || noteId?.toString()
-      
-      if (!noteIdString) {
-        throw new Error('Invalid noteId provided')
-      }
-      
-      const noteDetailsResponse = await requestAPI.getNoteDetails(user, noteId)
-      console.log('🔍 [generateSummary] Note details response:', noteDetailsResponse)
-
-      // Extract content from note details - response has { content, accessToken } structure
-      const noteContent = noteDetailsResponse.content
-      
-      if (!noteContent) {
-        console.error('❌ [generateSummary] Note content not found. Response:', noteDetailsResponse)
-        throw new Error('Note content not found in response')
-      }
-
-      const summaryResult = await api.post('/Summaries/setSummaryWithAI', {
-          user: user,
-          text: noteContent,
-          item: noteIdString
-        })
-
-        if ("error" in summaryResult.data) {
-          throw new Error(summaryResult.data.error)
-        }
-
-        console.log('🔍 [generateSummary] Summary result:', summaryResult.data)
-
-      const newSummary = await api.post('/Summaries/getSummary', {
-        user: user,
-        item: noteIdString
-      })
-
-      return newSummary.data
-    } catch (error) {
-      console.error('❌ [generateSummary] Error:', error)
-      console.log('❌ [generateSummary] Error:', error.response?.data)
-      throw error.response?.data || error
+    // Ensure noteId is a string
+    const noteIdString = typeof noteId === 'string' ? noteId : noteId?._id || noteId?.toString()
+    
+    if (!noteIdString) {
+      throw new Error('Invalid noteId provided')
     }
+
+    const response = await authHandler.wrap(async () => {
+      return await api.post('/Summaries/generateSummary', {
+        user: user,
+        noteId: noteIdString
+      })
+    })
+    
+    // Backend sync responds with { summary, accessToken }
+    return response.summary
   }
 }

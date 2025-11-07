@@ -257,9 +257,9 @@ export default {
       }
 
       try {
-        // Check if summary already exists
-        const existingSummary = await summariesAPI.getSummary(user, props.note._id, authService.getAccessToken())
-        if (existingSummary.summary && existingSummary.summary.trim() !== '') {
+        // Check if summary already exists - getSummary now returns the summary directly
+        const existingSummary = await summariesAPI.getSummary(user, props.note._id)
+        if (existingSummary && existingSummary.trim() !== '') {
           console.log('📝 Summary already exists, skipping generation')
           return
         }
@@ -270,7 +270,8 @@ export default {
 
       try {
         console.log('📝 Auto-generating summary in background for note:', props.note.title)
-        await summariesAPI.generateSummary(user, props.note._id, authService.getAccessToken())
+        // generateSummary now returns the summary directly, no need to call getSummary after
+        await summariesAPI.generateSummary(user, props.note._id)
         console.log('✅ Background summary generation completed')
       } catch (error) {
         console.log('📝 Background summary generation failed:', error)

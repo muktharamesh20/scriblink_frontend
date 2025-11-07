@@ -88,12 +88,12 @@ export default {
         allNotes.value = userNotes.notes || []
         console.log('🔍 [SearchBar] Loaded notes:', allNotes.value.length)
 
-        // Load summaries for all notes
+        // Load summaries for all notes - getSummary now returns the summary directly
         const summaryPromises = allNotes.value.map(async (note) => {
           try {
-            const summaryResponse = await summariesAPI.getSummary(user, note._id, authService.getAccessToken())
-            if (summaryResponse.summary) {
-              allSummaries.value.set(note._id, summaryResponse.summary)
+            const summaryText = await summariesAPI.getSummary(user, note._id)
+            if (summaryText) {
+              allSummaries.value.set(note._id, summaryText)
             }
           } catch (error) {
             // It's okay if there's no summary
