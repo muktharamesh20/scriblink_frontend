@@ -452,10 +452,12 @@ export const requestAPI = {
       const summaryResult = await api.post('/Summaries/setSummaryWithAI', {
           user: user,
           text: noteContent,
-          tem: noteIdString
+          item: noteIdString
         })
 
-        await requestAPI.setSummary(user, noteIdString, summaryResult.data.summary)
+        if (summaryResult.data.error) {
+          throw new Error(summaryResult.data.error)
+        }
 
         console.log('🔍 [generateSummary] Summary result:', summaryResult.data)
 
