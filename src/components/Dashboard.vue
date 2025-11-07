@@ -131,7 +131,7 @@ import FolderTree from './FolderTree.vue'
 import FolderView from './FolderView.vue'
 import NoteEditor from './NoteEditor.vue'
 import SearchBar from './SearchBar.vue'
-import { notesAPI, folderAPI, tagsAPI, requestAPI } from '../services/apiServices.js'
+import { notesAPI, folderAPI, tagsAPI } from '../services/apiServices.js'
 
 export default {
   name: 'Dashboard',
@@ -442,7 +442,7 @@ export default {
       if (!rootFolder && user) {
         try {
           // getRootFolderId already extracts and returns just the folder ID
-          rootFolder = await requestAPI.getRootFolderId(user)
+          rootFolder = await folderAPI.getRootFolder(user)
           if (rootFolder) {
             authService.setRootFolder(rootFolder)
             console.log('✅ Root folder fetched and stored:', rootFolder)

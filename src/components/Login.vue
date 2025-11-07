@@ -49,7 +49,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { authAPI, requestAPI } from '../services/apiServices.js'
+import { authAPI, folderAPI } from '../services/apiServices.js'
 import { authService } from '../services/authService.js'
 
 export default {
@@ -84,7 +84,7 @@ export default {
           
           // Fetch and store root folder
           try {
-            const rootFolder = await requestAPI.getRootFolderId(userId, accessToken)
+            const rootFolder = await folderAPI.getRootFolder(userId, accessToken)
             if (rootFolder) {
               authService.setRootFolder(rootFolder)
               console.log('✅ Root folder stored:', rootFolder)
