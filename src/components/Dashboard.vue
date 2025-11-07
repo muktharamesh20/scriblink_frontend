@@ -265,12 +265,12 @@ export default {
       if (!user) return
 
       try {
-        // Get all user tags
-        const response = await tagsAPI.getUserTags(user, authService.getAccessToken())
-        if (response.tags && response.tags.length > 0) {
+        // Get all user tags (full objects with items array)
+        const allUserTags = await tagsAPI.getAllUserTagsFull(user)
+        if (allUserTags && allUserTags.length > 0) {
           // Create a map of tag labels to tag IDs
           const tagIdMap = {}
-          for (const tag of response.tags) {
+          for (const tag of allUserTags) {
             if (typeof tag === 'object' && tag.label && tag._id) {
               tagIdMap[tag.label] = tag._id
             }
@@ -280,7 +280,7 @@ export default {
           const tagGroups = {}
           
           // Initialize tag groups with both label and ID
-          for (const tag of response.tags) {
+          for (const tag of allUserTags) {
             const tagLabel = typeof tag === 'string' ? tag : tag.label
             tagGroups[tagLabel] = {
               label: tagLabel,

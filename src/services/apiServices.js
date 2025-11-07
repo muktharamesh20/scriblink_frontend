@@ -67,6 +67,10 @@ export const folderAPI = {
 }
 
 export const tagsAPI = {
+  getAllUserTagsFull: async (user) => {
+    return requestAPI._getAllUserTagsFull(user)
+  },
+
   addTag: async (user, itemId, tagLabel) => {
     return requestAPI.tagItem(user, itemId, tagLabel)
   },
@@ -77,10 +81,6 @@ export const tagsAPI = {
 
   getItemTags: async (user, itemId) => {
     return requestAPI.getItemTags(user, itemId)
-  },
-
-  getUserTags: async (user) => {
-    return requestAPI.getUserTags(user)
   }
 }
 
@@ -237,11 +237,9 @@ export const requestAPI = {
 
       // Tag filter (optional)
       if (tagLabel !== undefined && tagLabel !== null) {
-        const tagResult = await api.post('/Tags/_getAllUserTags', { user });
-        if (tagResult.data?.error) {
-          throw new Error(`Failed to get tags: ${tagResult.data.error}`);
-        }
-        const tagWithLabel = (tagResult.data || []).find((tag) => tag.label === tagLabel);
+        // Get all user tags (full objects with items, not just labels)
+        const allTagsResult = await requestAPI._getAllUserTagsFull(user);
+        const tagWithLabel = allTagsResult.find((tag) => tag.label === tagLabel);
 
         if (tagWithLabel) {
           notesWithFolder = notesWithFolder.filter(note =>
@@ -332,12 +330,14 @@ export const requestAPI = {
     return response.tags || []
   },
 
-  getUserTags: async (user) => {
+  // Get full user tags (with items array) for filtering
+  _getAllUserTagsFull: async (user) => {
     try {
-      const response = await api.post('/Tags/_getAllUserTags', {
-        user
-      })
-      return { tags: response.data.map((tag) => tag.label) }
+      const response = await api.post('/Tags/_getAllUserTags', { user })
+      if (response.data?.error) {
+        throw new Error(`Failed to get tags: ${response.data.error}`)
+      }
+      return response.data || []
     } catch (error) {
       throw error.response?.data || error
     }
