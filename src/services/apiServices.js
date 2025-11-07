@@ -49,6 +49,10 @@ export const folderAPI = {
     return requestAPI.getFolderStructure(user, folderId)
   },
 
+  getAllFolders: async (user) => {
+    return requestAPI.getAllFolders(user)
+  },
+
   createFolder: async (user, title, parent) => {
     return requestAPI.createFolder(user, title, parent)
   },
@@ -114,6 +118,10 @@ export const requestAPI = {
     } catch (error) {
       throw error.response?.data || error
     }
+  },
+
+  getAllFolders: async (user) => {
+    return await api.post('/Folder/getAllFolders', { user })
   },
 
   loginUser: async (username, password) => {
@@ -214,7 +222,6 @@ export const requestAPI = {
       let notes = Array.isArray(notesResult.data) ? notesResult.data : [];
 
       // 2. Get all folders for this user to determine folderId mapping
-      // Try getAllFolders first, fallback to getFolderStructure if it fails
       let allFolders = [];
       try {
         const allFoldersResult = await api.post('/Folder/getAllFolders', { user });

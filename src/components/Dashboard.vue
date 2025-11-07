@@ -455,7 +455,9 @@ export default {
       // If no root folder in localStorage, try to fetch it
       if (!rootFolder && user) {
         try {
-          rootFolder = await requestAPI.getRootFolderId(user, authService.getAccessToken())
+          const rootFolderResult = await requestAPI.getRootFolderId(user)
+          // getRootFolderId uses passthrough, returns axios response with .data
+          rootFolder = rootFolderResult.data?.rootFolder || rootFolderResult.data
           if (rootFolder) {
             authService.setRootFolder(rootFolder)
             console.log('✅ Root folder fetched and stored:', rootFolder)
@@ -473,11 +475,12 @@ export default {
       }
 
       try {
-        console.log('🔄 [Dashboard.refreshFolders] Calling folderAPI.getFolderStructure');
-        const folderStructure = await folderAPI.getFolderStructure(user, undefined, authService.getAccessToken())
-        console.log('🔍 [Dashboard.refreshFolders] Folder structure received:', folderStructure);
+        console.log('🔄 [Dashboard.refreshFolders] Calling folderAPI.getAllFolders');
+        const foldersResult = await folderAPI.getAllFolders(user)
+        console.log('🔍 [Dashboard.refreshFolders] Folders result received:', foldersResult);
         
-        const allFolders = folderStructure.folders || []
+        // getAllFolders uses passthrough, returns axios response with .data
+        const allFolders = Array.isArray(foldersResult.data) ? foldersResult.data : (foldersResult.data?.folders || [])
         console.log('🔍 [Dashboard.refreshFolders] All folders count:', allFolders.length);
         console.log('🔍 [Dashboard.refreshFolders] All folders:', allFolders.map(f => ({ _id: f._id, title: f.title, folders: f.folders })));
         
