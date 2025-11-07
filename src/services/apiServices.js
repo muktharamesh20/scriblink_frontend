@@ -398,14 +398,13 @@ export const requestAPI = {
   },
 
   getSummary: async (user, itemId) => {
-    try {
+    return authHandler.wrap(async () => {
       const response = await api.post('/Summaries/getSummary', {
-        item:itemId
+        user: user,
+        item: itemId
       })
       return response.data
-    } catch (error) {
-      throw error.response?.data || error
-    }
+    })
   },
 
   getUserSummaries: async (user) => {
